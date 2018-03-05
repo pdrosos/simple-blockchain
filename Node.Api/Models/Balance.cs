@@ -7,6 +7,6 @@ namespace Node.Api.Models
         public int Confirmations { get; set; }
 
         [Display(Name ="Balance")]
-        public int BalanceValue { get; set; }
+        public long BalanceValue { get; set; }
     }
 }

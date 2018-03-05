@@ -5,7 +5,7 @@ namespace Node.Api.Models
 {
     public class Block
     {
-        public int Index { get; set; }
+        public long Index { get; set; }
 
         public List<Transaction> Transactions { get; set; }
 

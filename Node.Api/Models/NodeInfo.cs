@@ -14,7 +14,7 @@
 
         public int CumulativeDifficulty { get; set; }
 
-        public int ConfirmedTransactions { get; set; }
+        public long ConfirmedTransactions { get; set; }
 
         public int PendingTransactions { get; set; }
     }
