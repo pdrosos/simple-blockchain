@@ -15,6 +15,7 @@
             this.configuration = configuration;
         }
 
+        // GET api/info
         [HttpGet]
         public IActionResult  Get()
         {
