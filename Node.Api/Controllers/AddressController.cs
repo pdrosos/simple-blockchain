@@ -40,37 +40,51 @@
         [HttpGet("{address}/balance")]
         public IActionResult GetAddressBalance(string address)
         {
-            int latestTransactionOccurrenceIndex = -1;
+            int latestAddressBlockIndex = -1;
 
-            long confirmedBalance = 0;
+            long confirmedBalance = 0L;
 
-            long lastMinedBalance = 0;
+            long lastMinedBalance = 0L;
+
+            long pendingBalance = 0L;
 
             int saveConfirmCount = 6;
 
-            for (int i = 0; i < MockedData.Blocks.Count; i++)
+            for (int currentBlockIndex = 0; currentBlockIndex < MockedData.Blocks.Count; currentBlockIndex++)
             {
-                var transaction = MockedData.Blocks[i].Transactions
-                    .FirstOrDefault(t => t.From == address || t.To == address);
-
-                if (transaction != null)
+                foreach (var transaction in MockedData.Blocks[currentBlockIndex].Transactions)
                 {
-                    latestTransactionOccurrenceIndex = i;
-
-                    if (MockedData.Blocks.Count - i >= saveConfirmCount)
+                    if (transaction.From == address || transaction.To == address)
                     {
-                        confirmedBalance = confirmedBalance + transaction.Value;
-                    }
+                        latestAddressBlockIndex = currentBlockIndex;
 
-                    lastMinedBalance = lastMinedBalance + transaction.Value;
+                        if (MockedData.Blocks.Count - currentBlockIndex >= saveConfirmCount)
+                        {
+                            confirmedBalance = this.UpdateBalance(transaction, address, confirmedBalance);
+                        }
+
+                        lastMinedBalance = this.UpdateBalance(transaction, address, lastMinedBalance);
+
+                        pendingBalance = this.UpdateBalance(transaction, address, pendingBalance);
+                    }
+                }
+            }
+
+            for (int currentTransactionIndex = 0; currentTransactionIndex < MockedData.PendingTransactions.Count; currentTransactionIndex++)
+            {
+                Transaction currentPendingTransaction = MockedData.PendingTransactions[currentTransactionIndex];
+
+                if (currentPendingTransaction.From == address || currentPendingTransaction.To == address)
+                {
+                    pendingBalance = this.UpdateBalance(currentPendingTransaction, address, pendingBalance);
                 }
             }
 
             int confirmations;
 
-            if (latestTransactionOccurrenceIndex >= 0)
+            if (latestAddressBlockIndex >= 0)
             {
-                confirmations = MockedData.Blocks.Count - latestTransactionOccurrenceIndex;
+                confirmations = MockedData.Blocks.Count - latestAddressBlockIndex;
             }
             else
             {
@@ -91,7 +105,33 @@
                 BalanceValue = lastMinedBalance
             };
 
+            addressBalance.PendingBalance = new Balance()
+            {
+                Confirmations = 0,
+                BalanceValue = pendingBalance
+            };
+
             return Ok();
+        }
+
+        private long UpdateBalance(Transaction transaction, string address, long balance)
+        {
+            long currentBalance = balance;
+
+            if (transaction.From == address && transaction.To == address)
+            {
+                return currentBalance;
+            }
+            else if (transaction.From == address)
+            {
+                currentBalance -= transaction.Value;
+            }
+            else if (transaction.To == address)
+            {
+                currentBalance += transaction.Value;
+            }
+
+            return currentBalance;
         }
     }
 }
