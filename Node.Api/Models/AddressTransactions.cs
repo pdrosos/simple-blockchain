@@ -6,6 +6,6 @@ namespace Node.Api.Models
     {
         public string Address { get; set; }
 
-        public List<string> Transactions { get; set; }
+        public List<Transaction> Transactions { get; set; }
     }
 }
