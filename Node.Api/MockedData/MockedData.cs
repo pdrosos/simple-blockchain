@@ -132,5 +132,11 @@ namespace Node.Api.MockedData
             RewardAddress = "9a9f08…fe917",
             BlockDataHash = "d2c6ee29ff14b499af985824ea12afccc8…e4cd"
         };
+
+        public static readonly Dictionary<string, Block> MiningJobs = new Dictionary<string, Block>()
+        {
+            { "293eadecc0045670aced00dea", Blocks[0] },
+            { "345accde0067aed00ee312312", Blocks[1] }
+        };
     }
 }

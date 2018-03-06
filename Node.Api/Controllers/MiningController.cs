@@ -32,6 +32,11 @@
                 return BadRequest();
             }
 
+            if (!MockedData.MiningJobs.ContainsKey(minedBlock.BlockDataHash))
+            {
+                return NotFound();
+            }
+
             var reward = 5000350;
 
             var response = new

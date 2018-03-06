@@ -5,6 +5,7 @@
     using Microsoft.AspNetCore.Mvc;
     using Node.Api.MockedData;
     using Node.Api.Models;
+    using Microsoft.AspNetCore.Http;
 
     [Route("api/[controller]")]
     public class PeersController : Controller
@@ -20,7 +21,14 @@
         [HttpPost]
         public IActionResult ConnectPeer([FromBody]Peer peer)
         {
-            return Ok();
+            var connectedPeers = MockedData.Peers;
+
+            if (connectedPeers.Contains(peer.PeerUrl))
+            {
+                return StatusCode(StatusCodes.Status409Conflict);
+            }
+
+            return Ok(new { Message = string.Format("Added peer: {0}", peer.PeerUrl) });
         }
     }
 }
