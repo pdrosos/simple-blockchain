@@ -47,7 +47,7 @@
             return Ok(pendingTransactions);
         }
 
-        // GET api/transactions/send
+        // POST api/transactions/send
         [HttpPost("send")]
         public IActionResult SendTransaction([FromBody]Transaction transaction)
         {

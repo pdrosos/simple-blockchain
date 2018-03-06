@@ -117,5 +117,20 @@ namespace Node.Api.MockedData
                 TransactionHash = "78bacce94204a066e24541ce8276c9ecaa32aed00a"
             }
         };
+
+        public static readonly List<string> Peers = new List<string>()
+        {
+            "http://212.50.11.109:5555",
+            "http://af6c7a.ngrok.org:5555"
+        };
+
+        public static readonly MiningJob MiningJob = new MiningJob()
+        {
+            Index = 50,
+            TransactionsIncluded = 17,
+            ExpectedReward = 5000350,
+            RewardAddress = "9a9f08…fe917",
+            BlockDataHash = "d2c6ee29ff14b499af985824ea12afccc8…e4cd"
+        };
     }
 }
