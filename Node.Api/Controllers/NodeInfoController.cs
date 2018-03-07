@@ -6,7 +6,7 @@
     using Node.Api.Models;
     using Node.Api.Services.Abstractions;
 
-    [Route("api/info")]
+    [Route("info")]
     public class NodeInfoController : Controller
     {
         private readonly IMockedDataService mockedDataService;
@@ -20,9 +20,9 @@
             this.mockedDataService = mockedDataService;
         }
 
-        // GET api/info
+        // GET info
         [HttpGet]
-        public IActionResult  Get()
+        public IActionResult Get()
         {
             NodeInfo nodeInfo = this.mockedDataService.NodeInfo;
 

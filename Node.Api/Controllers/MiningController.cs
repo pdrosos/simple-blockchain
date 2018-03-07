@@ -5,7 +5,7 @@
     using Node.Api.Models;
     using Node.Api.Services.Abstractions;
 
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     public class MiningController : Controller
     {
         private readonly IMockedDataService mockedDataService;

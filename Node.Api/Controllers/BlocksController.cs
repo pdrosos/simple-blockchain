@@ -7,7 +7,7 @@
     using Node.Api.Models;
     using Node.Api.Services.Abstractions;
 
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     public class BlocksController : Controller
     {
         private readonly IMockedDataService mockedDataService;
@@ -17,7 +17,7 @@
             this.mockedDataService = mockedDataService;
         }
 
-        // GET api/blocks
+        // GET blocks
         [HttpGet]
         public IActionResult Get()
         {
@@ -26,7 +26,7 @@
             return Ok(blocks);
         }
 
-        // GET api/blocks/17
+        // GET blocks/17
         [HttpGet("{index}")]
         public IActionResult GetByIndex(long index)
         {
@@ -40,7 +40,7 @@
             return Ok(block);
         }
 
-        // POST api/notify
+        // POST notify
         [HttpPost("notify")]
         public IActionResult Notify([FromBody]NewBlockNotification newBlockNotification)
         {

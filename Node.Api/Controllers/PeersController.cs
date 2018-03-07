@@ -7,7 +7,7 @@
     using Microsoft.AspNetCore.Http;
     using Node.Api.Services.Abstractions;
 
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     public class PeersController : Controller
     {
         private readonly IMockedDataService mockedDataService;

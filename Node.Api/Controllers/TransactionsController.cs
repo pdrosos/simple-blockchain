@@ -8,7 +8,7 @@
     using Node.Api.Models;
     using Node.Api.Services.Abstractions;
 
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     public class TransactionsController : Controller
     {
         private readonly IMockedDataService mockedDataService;
@@ -18,7 +18,7 @@
             this.mockedDataService = mockedDataService;
         }
 
-        // GET api/transactions/23fe06345cc864aed086465ff8276c9ec3ac267
+        // GET transactions/23fe06345cc864aed086465ff8276c9ec3ac267
         [HttpGet("{transactionHash}")]
         public IActionResult GetTransactionInfo(string transactionHash)
         {
@@ -34,7 +34,7 @@
             return Ok(transaction);
         }
 
-        // GET api/transactions/confirmed
+        // GET transactions/confirmed
         [HttpGet("confirmed")]
         public IActionResult GetConfirmedTransactions()
         {
@@ -45,7 +45,7 @@
             return Ok(transactions);
         }
 
-        // GET api/transactions/pending
+        // GET transactions/pending
         [HttpGet("pending")]
         public IActionResult GetPendingTransactions()
         {
@@ -54,7 +54,7 @@
             return Ok(pendingTransactions);
         }
 
-        // POST api/transactions/send
+        // POST transactions/send
         [HttpPost("send")]
         public IActionResult SendTransaction([FromBody]Transaction transaction)
         {
