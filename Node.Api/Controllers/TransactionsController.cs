@@ -6,16 +6,23 @@
     using Microsoft.AspNetCore.Mvc.ModelBinding;
 
     using Node.Api.Models;
-    using Node.Api.MockedData;
+    using Node.Api.Services.Abstractions;
 
     [Route("api/[controller]")]
     public class TransactionsController : Controller
     {
+        private readonly IMockedDataService mockedDataService;
+
+        public TransactionsController(IMockedDataService mockedDataService)
+        {
+            this.mockedDataService = mockedDataService;
+        }
+
         // GET api/transactions/23fe06345cc864aed086465ff8276c9ec3ac267
         [HttpGet("{transactionHash}")]
         public IActionResult GetTransactionInfo(string transactionHash)
         {
-            var transaction = MockedData.Blocks
+            var transaction = this.mockedDataService.Blocks
                 .Select(b => b.Transactions.FirstOrDefault(tr => tr.TransactionHash == transactionHash))
                 .FirstOrDefault();
 
@@ -24,14 +31,14 @@
                 return NotFound();
             }
 
-            return Ok();
+            return Ok(transaction);
         }
 
         // GET api/transactions/confirmed
         [HttpGet("confirmed")]
         public IActionResult GetConfirmedTransactions()
         {
-            IEnumerable<Transaction> transactions = MockedData.Blocks
+            IEnumerable<Transaction> transactions = this.mockedDataService.Blocks
                 .SelectMany(b => b.Transactions)
                 .Where(t => t.TransferSuccessful == true);
 
@@ -42,7 +49,7 @@
         [HttpGet("pending")]
         public IActionResult GetPendingTransactions()
         {
-            IEnumerable<Transaction> pendingTransactions = MockedData.PendingTransactions;
+            IEnumerable<Transaction> pendingTransactions = this.mockedDataService.PendingTransactions;
 
             return Ok(pendingTransactions);
         }

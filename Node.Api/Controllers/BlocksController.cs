@@ -5,16 +5,23 @@
     using Microsoft.AspNetCore.Mvc;
 
     using Node.Api.Models;
-    using Node.Api.MockedData;
+    using Node.Api.Services.Abstractions;
 
     [Route("api/[controller]")]
     public class BlocksController : Controller
     {
+        private readonly IMockedDataService mockedDataService;
+
+        public BlocksController(IMockedDataService mockedDataService)
+        {
+            this.mockedDataService = mockedDataService;
+        }
+
         // GET api/blocks
         [HttpGet]
         public IActionResult Get()
         {
-            List<Block> blocks = MockedData.Blocks;
+            List<Block> blocks = this.mockedDataService.Blocks;
 
             return Ok(blocks);
         }
@@ -23,7 +30,7 @@
         [HttpGet("{index}")]
         public IActionResult GetByIndex(long index)
         {
-            Block block = MockedData.Blocks.FirstOrDefault(b => b.Index == index);
+            Block block = this.mockedDataService.Blocks.FirstOrDefault(b => b.Index == index);
 
             if (block == null)
             {

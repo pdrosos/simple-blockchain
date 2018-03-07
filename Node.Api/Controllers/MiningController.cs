@@ -2,12 +2,19 @@
 {
     using Microsoft.AspNetCore.Mvc;
 
-    using Node.Api.MockedData;
     using Node.Api.Models;
+    using Node.Api.Services.Abstractions;
 
     [Route("api/[controller]")]
     public class MiningController : Controller
     {
+        private readonly IMockedDataService mockedDataService;
+
+        public MiningController(IMockedDataService mockedDataService)
+        {
+            this.mockedDataService = mockedDataService;
+        }
+
         [HttpGet("get-mining-job/{minerAddress}")]
         public IActionResult GetBlock(string minerAddress)
         {
@@ -19,7 +26,7 @@
             // TODO: Generate BlockDataHash from BlockCandidate, add the BlockCandidate to the MiningJobs dictionary
             // minerAddress - To field in the coinbase transaction
 
-            MiningJob newMiningJob = MockedData.MiningJob;
+            MiningJob newMiningJob = this.mockedDataService.MiningJob;
 
             return Ok(newMiningJob);
         }
@@ -32,7 +39,7 @@
                 return BadRequest();
             }
 
-            if (!MockedData.MiningJobs.ContainsKey(minedBlock.BlockDataHash))
+            if (!this.mockedDataService.MiningJobs.ContainsKey(minedBlock.BlockDataHash))
             {
                 return NotFound();
             }

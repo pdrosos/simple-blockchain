@@ -2,24 +2,29 @@
 {
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Configuration;
-    using Node.Api.MockedData;
+
     using Node.Api.Models;
-    
+    using Node.Api.Services.Abstractions;
+
     [Route("api/info")]
     public class NodeInfoController : Controller
     {
+        private readonly IMockedDataService mockedDataService;
+
         private readonly IConfiguration configuration;
 
-        public NodeInfoController(IConfiguration configuration)
+        public NodeInfoController(IConfiguration configuration, IMockedDataService mockedDataService)
         {
             this.configuration = configuration;
+
+            this.mockedDataService = mockedDataService;
         }
 
         // GET api/info
         [HttpGet]
         public IActionResult  Get()
         {
-            NodeInfo nodeInfo = MockedData.NodeInfo;
+            NodeInfo nodeInfo = this.mockedDataService.NodeInfo;
 
             nodeInfo.About = this.configuration["App:About"];
 
