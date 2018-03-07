@@ -12,5 +12,23 @@ namespace Node.Api.Services
         {
             this.dataService = dataService;
         }
+
+        public string CalculateTransactionHash(Transaction transaction)
+        {
+            return string.Empty;
+        }
+
+        public bool IsCollisionDetected(Transaction transaction)
+        {
+            return false;
+        }
+
+        public void AddTransactionToPendingTransactions(Transaction transaction, List<Transaction> pendingTransactions)
+        {
+        }
+
+        public void SendTransactionToPeerNodes(List<string> peerNodes)
+        {
+        }
     }
 }
