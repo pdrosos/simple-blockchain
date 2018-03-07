@@ -12,9 +12,13 @@
     {
         private readonly IMockedDataService mockedDataService;
 
-        public PeersController(IMockedDataService mockedDataService)
+        private readonly IPeerService peerService;
+
+        public PeersController(IMockedDataService mockedDataService, IPeerService peerService)
         {
             this.mockedDataService = mockedDataService;
+
+            this.peerService = peerService;
         }
 
         [HttpGet]

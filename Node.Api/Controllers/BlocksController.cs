@@ -12,9 +12,13 @@
     {
         private readonly IMockedDataService mockedDataService;
 
-        public BlocksController(IMockedDataService mockedDataService)
+        private readonly IBlockService blockService;
+
+        public BlocksController(IMockedDataService mockedDataService, IBlockService blockService)
         {
             this.mockedDataService = mockedDataService;
+
+            this.blockService = blockService;
         }
 
         // GET blocks

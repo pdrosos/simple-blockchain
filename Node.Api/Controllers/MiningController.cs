@@ -10,9 +10,13 @@
     {
         private readonly IMockedDataService mockedDataService;
 
-        public MiningController(IMockedDataService mockedDataService)
+        private readonly IMiningService miningService;
+
+        public MiningController(IMockedDataService mockedDataService, IMiningService miningService)
         {
             this.mockedDataService = mockedDataService;
+
+            this.miningService = miningService;
         }
 
         [HttpGet("get-mining-job/{minerAddress}")]

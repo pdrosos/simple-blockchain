@@ -11,13 +11,17 @@
     {
         private readonly IMockedDataService mockedDataService;
 
+        private readonly INodeService nodeService;
+
         private readonly IConfiguration configuration;
 
-        public NodeInfoController(IConfiguration configuration, IMockedDataService mockedDataService)
+        public NodeInfoController(IConfiguration configuration, IMockedDataService mockedDataService, INodeService nodeService)
         {
             this.configuration = configuration;
 
             this.mockedDataService = mockedDataService;
+
+            this.nodeService = nodeService;
         }
 
         // GET info

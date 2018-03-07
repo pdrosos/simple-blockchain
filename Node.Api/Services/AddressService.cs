@@ -10,9 +10,13 @@
     {
         private readonly IMockedDataService mockedDataService;
 
-        public AddressService(IMockedDataService mockedDataService)
+        private readonly IDataService dataService;
+
+        public AddressService(IMockedDataService mockedDataService, IDataService dataService)
         {
             this.mockedDataService = mockedDataService;
+
+            this.dataService = dataService;
         }
 
         public AddressTransactions GetTransactionsForAddress(string address)

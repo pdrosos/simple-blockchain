@@ -13,9 +13,13 @@
     {
         private readonly IMockedDataService mockedDataService;
 
-        public TransactionsController(IMockedDataService mockedDataService)
+        private readonly ITransactionService transactionService;
+
+        public TransactionsController(IMockedDataService mockedDataService, ITransactionService transactionService)
         {
             this.mockedDataService = mockedDataService;
+
+            this.transactionService = transactionService;
         }
 
         // GET transactions/23fe06345cc864aed086465ff8276c9ec3ac267
