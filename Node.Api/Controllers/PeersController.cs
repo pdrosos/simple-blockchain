@@ -1,15 +1,15 @@
 ﻿namespace Node.Api.Controllers
 {
     using System.Collections.Generic;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
 
-    using Node.Api.Models;
-    using Microsoft.AspNetCore.Http;
-    using Node.Api.Services.Abstractions;
-    using System.Net.Http.Headers;
-    using System.Net.Http;
     using Node.Api.Extensions;
     using Node.Api.Helpers;
+    using Node.Api.Models;
+    using Node.Api.Services.Abstractions;
 
     [Route("[controller]")]
     public class PeersController : Controller
