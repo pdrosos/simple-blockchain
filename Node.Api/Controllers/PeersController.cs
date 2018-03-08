@@ -50,7 +50,9 @@
         {
             var currentNodePeers = this.dataService.NodeInfo.PeersListUrls;
 
-            if (currentNodePeers.Contains(peer.PeerUrl))
+            string currentNodeUrl = this.httpContextHelpers.GetApplicationUrl(HttpContext);
+
+            if (currentNodePeers.Contains(peer.PeerUrl) || peer.PeerUrl == currentNodeUrl)
             {
                 return StatusCode(StatusCodes.Status409Conflict);
             }
@@ -63,14 +65,14 @@
 
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            string currentNodeUrl = this.httpContextHelpers.GetApplicationUrl(HttpContext);
-
             var currentNodePeer = new Peer()
             {
                 PeerUrl = currentNodeUrl
             };
 
-            var response = httpClient.PostAsync(peer.PeerUrl, new JsonContent(currentNodePeer));
+            string requestUrl = $"{peer.PeerUrl}/peers";
+
+            var response = httpClient.PostAsync(requestUrl, new JsonContent(currentNodePeer));
 
             return Ok(new { Message = string.Format("Added peer: {0}", peer.PeerUrl) });
         }
