@@ -6,25 +6,41 @@
     using Node.Api.Models;
     using Microsoft.AspNetCore.Http;
     using Node.Api.Services.Abstractions;
+    using System.Net.Http.Headers;
+    using System.Net.Http;
+    using Node.Api.Extensions;
+    using Node.Api.Helpers;
 
     [Route("[controller]")]
     public class PeersController : Controller
     {
+        private readonly IDataService dataService;
+
         private readonly IMockedDataService mockedDataService;
 
         private readonly IPeerService peerService;
 
-        public PeersController(IMockedDataService mockedDataService, IPeerService peerService)
+        private readonly IHttpContextHelpers httpContextHelpers;
+
+        public PeersController(
+            IDataService dataService, 
+            IMockedDataService mockedDataService, 
+            IPeerService peerService,
+            IHttpContextHelpers httpContextHelpers)
         {
+            this.dataService = dataService;
+
             this.mockedDataService = mockedDataService;
 
             this.peerService = peerService;
+
+            this.httpContextHelpers = httpContextHelpers;
         }
 
         [HttpGet]
         public IActionResult Get()
         {
-            List<string> peers = this.mockedDataService.Peers;
+            List<string> peers = this.dataService.NodeInfo.PeersListUrls;
 
             return Ok(peers);
         }
@@ -32,12 +48,29 @@
         [HttpPost]
         public IActionResult ConnectPeer([FromBody]Peer peer)
         {
-            var connectedPeers = this.mockedDataService.Peers;
+            var currentNodePeers = this.dataService.NodeInfo.PeersListUrls;
 
-            if (connectedPeers.Contains(peer.PeerUrl))
+            if (currentNodePeers.Contains(peer.PeerUrl))
             {
                 return StatusCode(StatusCodes.Status409Conflict);
             }
+
+            this.dataService.NodeInfo.PeersListUrls.Add(peer.PeerUrl);
+
+            var httpClient = new HttpClient();
+
+            httpClient.DefaultRequestHeaders.Accept.Clear();
+
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            string currentNodeUrl = this.httpContextHelpers.GetApplicationUrl(HttpContext);
+
+            var currentNodePeer = new Peer()
+            {
+                PeerUrl = currentNodeUrl
+            };
+
+            var response = httpClient.PostAsync(peer.PeerUrl, new JsonContent(currentNodePeer));
 
             return Ok(new { Message = string.Format("Added peer: {0}", peer.PeerUrl) });
         }

@@ -1,8 +1,7 @@
 ﻿namespace Node.Api.Controllers
 {
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Extensions.Configuration;
-
+    using Node.Api.Helpers;
     using Node.Api.Models;
     using Node.Api.Services.Abstractions;
 
@@ -13,28 +12,32 @@
 
         private readonly INodeService nodeService;
 
-        private readonly IConfiguration configuration;
+        private readonly IDataService dataService;
 
-        public NodeInfoController(IConfiguration configuration, IMockedDataService mockedDataService, INodeService nodeService)
+        private readonly IHttpContextHelpers httpContextHelpers;
+
+        public NodeInfoController(
+            IDataService dataService, 
+            IMockedDataService mockedDataService, 
+            INodeService nodeService,
+            IHttpContextHelpers httpContextHelpers)
         {
-            this.configuration = configuration;
+            this.dataService = dataService;
 
             this.mockedDataService = mockedDataService;
 
             this.nodeService = nodeService;
+
+            this.httpContextHelpers = httpContextHelpers;
         }
 
         // GET info
         [HttpGet]
         public IActionResult Get()
         {
-            NodeInfo nodeInfo = this.mockedDataService.NodeInfo;
+            NodeInfo nodeInfo = this.dataService.NodeInfo;
 
-            nodeInfo.About = this.configuration["App:About"];
-
-            nodeInfo.NodeUrl = this.configuration["App:NodeUrl"];
-
-            nodeInfo.Difficulty = int.Parse(this.configuration["App:Difficulty"]);
+            nodeInfo.NodeUrl = this.httpContextHelpers.GetApplicationUrl(HttpContext);
 
             return Ok(nodeInfo);
         }

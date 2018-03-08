@@ -1,4 +1,6 @@
-﻿namespace Node.Api.Models
+﻿using System.Collections.Generic;
+
+namespace Node.Api.Models
 {
     public class NodeInfo
     {
@@ -7,6 +9,8 @@
         public string NodeUrl { get; set; }
 
         public int Peers { get; set; }
+
+        public List<string> PeersListUrls { get; set; }
 
         public int Difficulty { get; set; }
 

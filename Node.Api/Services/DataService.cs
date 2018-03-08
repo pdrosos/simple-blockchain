@@ -13,8 +13,6 @@ namespace Node.Api.Services
 
         private List<Transaction> pendingTransactions;
 
-        private List<string> peers;
-
         private MiningJob miningJob;
 
         private Dictionary<string, Block> miningJobs;
@@ -35,12 +33,6 @@ namespace Node.Api.Services
         {
             get { return this.pendingTransactions; }
             set { this.pendingTransactions = value; }
-        }
-
-        public List<string> Peers
-        {
-            get { return this.peers; }
-            set { this.peers = value; }
         }
 
         public MiningJob MiningJob
