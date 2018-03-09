@@ -1,9 +1,14 @@
 import { NgModule, Optional, SkipSelf } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
+import { WalletService } from './services/wallet.service';
+import { CryptographyService } from './services/cryptography.service';
 
 @NgModule({
   imports: [],
-  providers: []
+  providers: [
+    WalletService,
+    CryptographyService
+  ]
 })
 export class CoreModule {
   constructor (@Optional() @SkipSelf() parentModule: CoreModule) {
