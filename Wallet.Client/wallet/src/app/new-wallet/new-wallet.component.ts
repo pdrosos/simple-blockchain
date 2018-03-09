@@ -1,5 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 
+import { WalletService } from '../core/services/wallet.service';
+
+import { Wallet } from '../core/models/wallet';
+
 @Component({
   selector: 'app-new-wallet',
   templateUrl: './new-wallet.component.html',
@@ -7,9 +11,28 @@ import { Component, OnInit } from '@angular/core';
 })
 export class NewWalletComponent implements OnInit {
 
-  constructor() { }
+  private generatedPrivateKey: string;
+
+  private generatedPublicKey: string;
+
+  private generatedAddress: string;
+
+  private walletGenerated = false;
+
+  constructor(private walletService: WalletService) { }
 
   ngOnInit() {
   }
 
+  public generateWallet(): void {
+    this.walletService.generateWallet().subscribe((wallet: Wallet) => {
+      this.generatedPrivateKey = wallet.privateKey;
+
+      this.generatedPublicKey = wallet.publicKey;
+
+      this.generatedAddress = wallet.address;
+
+      this.walletGenerated = true;
+    });
+  }
 }
