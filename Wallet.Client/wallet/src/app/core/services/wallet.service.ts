@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 
 import { Observable } from 'rxjs/Observable';
 
@@ -14,9 +14,19 @@ import { Wallet } from '../models/wallet';
 
 import { AddressBalance } from '../models/address-balance';
 
+import { Transaction } from '../models/transaction';
+
+import { TransactionSubmissionResponse } from '../models/transaction-submission-response';
+
 import { CryptographyService } from './cryptography.service';
 
 import { ErrorHandlerService } from './error-handler.service';
+
+const httpOptions = {
+  headers: new HttpHeaders({
+    'Content-Type':  'application/json'
+  })
+};
 
 @Injectable()
 export class WalletService {
@@ -60,8 +70,30 @@ export class WalletService {
     return Observable.of(wallet);
   }
 
-  public getBalance(blockchainNodeUrl): Observable<AddressBalance>{
+  public getBalance(blockchainNodeUrl: string): Observable<AddressBalance> {
     return this.http.get<AddressBalance>(blockchainNodeUrl + `/address/${this.wallet.address}/balance`)
+      .pipe(
+        catchError(this.errorHandlerService.handleError)
+      );
+  }
+
+  public signTransaction(unsignedTransaction: Transaction): void {
+    unsignedTransaction.dateCreated = new Date();
+
+    unsignedTransaction.fee = 10;
+
+    unsignedTransaction.senderPubKey = this.wallet.publicKey;
+
+    var transactionJSON = JSON.stringify(unsignedTransaction);
+
+    unsignedTransaction.senderSignature = this.cryptographyService.signData(transactionJSON, this.wallet.privateKey);
+  }
+
+  public sendTransaction(blockchainNodeUrl: string, transaction: Transaction): Observable<TransactionSubmissionResponse> {
+
+    let requestUrl = `${blockchainNodeUrl}/transactions/send`; 
+
+    return this.http.post<TransactionSubmissionResponse>(requestUrl, transaction, httpOptions)
       .pipe(
         catchError(this.errorHandlerService.handleError)
       );

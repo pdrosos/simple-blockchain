@@ -73,7 +73,9 @@
 
             //TODO: Add transaction to pending transactions, send transaction to other nodes
 
-            return Ok();
+            var transactionSubmissionResponse = new TransactionSubmissionResponse();
+
+            return Ok(transactionSubmissionResponse);
         }
     }
 }

@@ -32,6 +32,7 @@ export class AccountBalanceComponent implements OnInit {
 
   public displayBalance(): void {
     this.balanceForAddress = null;
+    this.errorMessage = null;
 
     this.walletService.getBalance(this.blockchainNodeUrl).subscribe(
       addressBalance => this.balanceForAddress = { ...addressBalance },

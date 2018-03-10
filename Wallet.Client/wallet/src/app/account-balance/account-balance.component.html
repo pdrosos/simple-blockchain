@@ -12,13 +12,31 @@
     <div>
         <button type="button" class="btn btn-primary mb-4" (click)="displayBalance()">Display Balance</button>
     </div>
-    <div class="row no-gutters" *ngIf="balanceForAddress">
-        <div class="col-lg-3">
-          Balance (confirmed):
-        </div>
-        <div class="col-lg-9">
-          {{balanceForAddress.confirmedBalance.balance}}
-        </div>
+    <div class="container pl-0" *ngIf="balanceForAddress">
+      <div class="row no-gutters">
+          <div class="col-lg-3">
+            Balance (confirmed):
+          </div>
+          <div class="col-lg-9">
+            {{balanceForAddress.confirmedBalance.balance}}
+          </div>
+      </div>
+      <div class="row no-gutters">
+          <div class="col-lg-3">
+            Balance ({{balanceForAddress.lastMinedBalance.confirmations}} confirmation(s)):
+          </div>
+          <div class="col-lg-9">
+            {{balanceForAddress.lastMinedBalance.balance}}
+          </div>
+      </div>
+      <div class="row no-gutters">
+          <div class="col-lg-3">
+            Balance (pending):
+          </div>
+          <div class="col-lg-9">
+            {{balanceForAddress.pendingBalance.balance}}
+          </div>
+      </div>
     </div>
     <div class="alert alert-danger" role="alert" *ngIf="errorMessage">
       {{errorMessage}}
