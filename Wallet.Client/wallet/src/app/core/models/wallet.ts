@@ -10,7 +10,7 @@ export class Wallet {
         this._publicKey = publicKey;
         this._address = address;
     }
-
+    
     get privateKey(): string {
         return this._privateKey;
     }

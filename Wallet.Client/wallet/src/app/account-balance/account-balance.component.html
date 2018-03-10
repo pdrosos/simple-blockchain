@@ -1,3 +1,32 @@
 <div class="container">
-  account balance works!
+  <h3>View Account Balance</h3>
+  <div class="container pl-0" *ngIf="walletAddress">
+    <div class="mt-3 mb-4">
+      Wallet Address: {{walletAddress}}
+    </div>
+    <div class="input-group mb-3">
+      <label for="blockchainNode">Blockchain Node:</label>
+      <input [(ngModel)]="blockchainNodeUrl" id="blockchainNode" class="form-control" placeholder="Blockchain node" 
+        aria-label="Blockchain node">
+    </div>
+    <div>
+        <button type="button" class="btn btn-primary mb-4" (click)="displayBalance()">Display Balance</button>
+    </div>
+    <div class="row no-gutters" *ngIf="balanceForAddress">
+        <div class="col-lg-5">
+          Balance (confirmed):
+        </div>
+        <div class="col-lg-7">
+          {{balanceForAddress.confirmedBalance.balance}}
+        </div>
+    </div>
+    <div class="alert alert-danger" role="alert" *ngIf="errorMessage">
+      {{errorMessage}}
+    </div>
+  </div>
+  <div class="container pl-0" *ngIf="!walletAddress">
+      <div class="alert alert-danger" role="alert">
+        Please unlock your wallet!
+      </div>
+  </div>
 </div>

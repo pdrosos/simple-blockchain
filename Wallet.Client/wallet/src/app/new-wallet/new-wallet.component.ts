@@ -26,13 +26,17 @@ export class NewWalletComponent implements OnInit {
 
   public generateWallet(): void {
     this.walletService.generateWallet().subscribe((wallet: Wallet) => {
-      this.generatedPrivateKey = wallet.privateKey;
+      if (wallet) {
+        this.generatedPrivateKey = wallet.privateKey;
 
-      this.generatedPublicKey = wallet.publicKey;
+        this.generatedPublicKey = wallet.publicKey;
 
-      this.generatedAddress = wallet.address;
+        this.generatedAddress = wallet.address;
 
-      this.walletGenerated = true;
+        this.walletGenerated = true;
+      } else {
+        this.walletGenerated = false;
+      }
     });
   }
 }

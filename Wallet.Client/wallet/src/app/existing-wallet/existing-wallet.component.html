@@ -1,3 +1,41 @@
 <div class="container">
-  existing-wallet works!
+  <h3>Open an existing wallet</h3>
+  <div class="mt-3 mb-4">
+    Enter your wallet private key (compressed ECDSA key, 65 hex digits):
+  </div>
+  <div class="input-group mb-3">
+    <input [(ngModel)]="walletPrivateKey" class="form-control" placeholder="Wallet private key" aria-label="Wallet private key">
+    <div class="input-group-append">
+      <button class="btn btn-outline-secondary" type="button" (click)="openWallet(walletPrivateKey)">Open Wallet</button>
+    </div>
+  </div>
+  <div class="container pl-0" *ngIf="walletForDisplay">
+    <div class="row no-gutters">
+      <div class="col-lg-6">
+        Decoded existing private key:
+      </div>
+      <div class="col-lg-6">
+        {{walletForDisplay.privateKey}}
+      </div>
+    </div>
+    <div class="row no-gutters">
+      <div class="col-lg-6">
+        Extracted public key:
+      </div>
+      <div class="col-lg-6">
+        {{walletForDisplay.publicKey}}
+      </div>
+    </div>
+    <div class="row no-gutters">
+      <div class="col-lg-6">
+        Extracted blockchain address:
+      </div>
+      <div class="col-lg-6">
+        {{walletForDisplay.address}}
+      </div>
+    </div>
+  </div>
+  <div class="alert alert-danger" role="alert" *ngIf="errorMessage">
+    {{errorMessage}}
+  </div>
 </div>
