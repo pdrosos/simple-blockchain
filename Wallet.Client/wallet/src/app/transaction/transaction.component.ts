@@ -21,6 +21,8 @@ export class TransactionComponent implements OnInit {
 
   private signedTransactionJSON: string;
 
+  private transactionSigned: boolean;
+
   private errorMessage: string;
 
   private model: any;
@@ -30,23 +32,28 @@ export class TransactionComponent implements OnInit {
   ngOnInit() {
     this.transactionPostModel = new Transaction();
 
-    this.model = {};
-
     let wallet = this.walletService.wallet;
 
     if (wallet) {
       this.transactionPostModel.from = wallet.address;
     }
+
+    this.transactionSigned = false;
   }
 
   public onTransactionSign(): void {
     this.walletService.signTransaction(this.transactionPostModel);
-    this.signedTransactionJSON = JSON.stringify(this.transactionPostModel);
+    this.signedTransactionJSON = JSON.stringify(this.transactionPostModel, null, 2);
+    if (this.signedTransactionJSON) {
+      this.transactionSigned = true;
+    }
   }
 
   public onTransactionSend(): void {
     this.walletService.sendTransaction(this.blockchainNodeUrl, this.transactionPostModel).subscribe(
-      transactionSubmissionResponse => this.transactionSubmissionResponse = { ...transactionSubmissionResponse },
+      transactionSubmissionResponse => { 
+        this.transactionSubmissionResponse = { ...transactionSubmissionResponse } 
+      },
       error => this.errorMessage = error
     );
   }

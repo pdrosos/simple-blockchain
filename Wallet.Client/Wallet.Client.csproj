@@ -8,8 +8,11 @@
 
   <ItemGroup>
     <Compile Remove="%2a%2a\**" />
+    <Compile Remove="wallet\node_modules\**" />
     <EmbeddedResource Remove="%2a%2a\**" />
+    <EmbeddedResource Remove="wallet\node_modules\**" />
     <None Remove="%2a%2a\**" />
+    <None Remove="wallet\node_modules\**" />
   </ItemGroup>
 
 </Project>

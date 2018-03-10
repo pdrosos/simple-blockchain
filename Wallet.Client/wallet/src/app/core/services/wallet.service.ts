@@ -22,6 +22,8 @@ import { CryptographyService } from './cryptography.service';
 
 import { ErrorHandlerService } from './error-handler.service';
 
+import { TransactionFee } from '../../constants/constants';
+
 const httpOptions = {
   headers: new HttpHeaders({
     'Content-Type':  'application/json'
@@ -77,16 +79,28 @@ export class WalletService {
       );
   }
 
-  public signTransaction(unsignedTransaction: Transaction): void {
-    unsignedTransaction.dateCreated = new Date();
+  public signTransaction(transactionPostModel: Transaction): void {
+    transactionPostModel.senderPubKey = this.wallet.publicKey;
 
-    unsignedTransaction.fee = 10;
+    transactionPostModel.fee = TransactionFee;
 
-    unsignedTransaction.senderPubKey = this.wallet.publicKey;
+    transactionPostModel.dateCreated = new Date();
 
-    var transactionJSON = JSON.stringify(unsignedTransaction);
+    let transaction = {
+      from: transactionPostModel.from,
+      to: transactionPostModel.to,
+      senderPubKey: transactionPostModel.senderPubKey,
+      value: transactionPostModel.value,
+      fee: transactionPostModel.fee,
+      dateCreated: transactionPostModel.dateCreated
+    }
 
-    unsignedTransaction.senderSignature = this.cryptographyService.signData(transactionJSON, this.wallet.privateKey);
+    let transactionJSON = JSON.stringify(transaction);
+
+    console.log('transactionJSON:');
+    console.log(transactionJSON);
+
+    transactionPostModel.senderSignature = this.cryptographyService.signData(transactionJSON, this.wallet.privateKey);
   }
 
   public sendTransaction(blockchainNodeUrl: string, transaction: Transaction): Observable<TransactionSubmissionResponse> {
