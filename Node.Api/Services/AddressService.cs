@@ -56,15 +56,15 @@
 
             int saveConfirmCount = 6;
 
-            for (int currentBlockIndex = 0; currentBlockIndex < this.mockedDataService.Blocks.Count; currentBlockIndex++)
+            for (int i = 0; i < this.mockedDataService.Blocks.Count; i++)
             {
-                foreach (var transaction in this.mockedDataService.Blocks[currentBlockIndex].Transactions)
+                foreach (var transaction in this.mockedDataService.Blocks[i].Transactions)
                 {
                     if (transaction.From == address || transaction.To == address)
                     {
-                        latestAddressBlockIndex = currentBlockIndex;
+                        latestAddressBlockIndex = i;
 
-                        if (this.mockedDataService.Blocks.Count - currentBlockIndex >= saveConfirmCount)
+                        if (this.mockedDataService.Blocks.Count - i >= saveConfirmCount)
                         {
                             confirmedBalance = this.UpdateBalance(transaction, address, confirmedBalance);
                         }
@@ -76,9 +76,9 @@
                 }
             }
 
-            for (int currentTransactionIndex = 0; currentTransactionIndex < this.mockedDataService.PendingTransactions.Count; currentTransactionIndex++)
+            for (int i = 0; i < this.mockedDataService.PendingTransactions.Count; i++)
             {
-                Transaction currentPendingTransaction = this.mockedDataService.PendingTransactions[currentTransactionIndex];
+                Transaction currentPendingTransaction = this.mockedDataService.PendingTransactions[i];
 
                 if (currentPendingTransaction.From == address || currentPendingTransaction.To == address)
                 {
@@ -97,24 +97,24 @@
                 confirmations = 0;
             }
 
-            var addressBalance = new AddressBalance();
-
-            addressBalance.ConfirmedBalance = new Balance()
+            var addressBalance = new AddressBalance()
             {
-                Confirmations = confirmations,
-                BalanceValue = confirmedBalance
-            };
-
-            addressBalance.LastMinedBalance = new Balance()
-            {
-                Confirmations = confirmations,
-                BalanceValue = lastMinedBalance
-            };
-
-            addressBalance.PendingBalance = new Balance()
-            {
-                Confirmations = 0,
-                BalanceValue = pendingBalance
+                Address = address,
+                ConfirmedBalance = new Balance()
+                {
+                    Confirmations = confirmations,
+                    BalanceValue = confirmedBalance
+                },
+                LastMinedBalance = new Balance()
+                {
+                    Confirmations = confirmations,
+                    BalanceValue = lastMinedBalance
+                },
+                PendingBalance = new Balance()
+                {
+                    Confirmations = 0,
+                    BalanceValue = pendingBalance
+                }
             };
 
             return addressBalance;
@@ -130,7 +130,7 @@
             }
             else if (transaction.From == address)
             {
-                currentBalance -= transaction.Value;
+                currentBalance = currentBalance - transaction.Value - transaction.Fee;
             }
             else if (transaction.To == address)
             {

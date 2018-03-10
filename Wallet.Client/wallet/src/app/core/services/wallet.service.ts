@@ -16,6 +16,8 @@ import { AddressBalance } from '../models/address-balance';
 
 import { CryptographyService } from './cryptography.service';
 
+import { ErrorHandlerService } from './error-handler.service';
+
 @Injectable()
 export class WalletService {
 
@@ -25,7 +27,10 @@ export class WalletService {
     return this._wallet;
   }
 
-  constructor(private cryptographyService: CryptographyService, private http: HttpClient) {
+  constructor(
+    private cryptographyService: CryptographyService, 
+    private http: HttpClient,
+    private errorHandlerService: ErrorHandlerService) {
   }
 
   public generateWallet(): Observable<Wallet> {
@@ -58,23 +63,7 @@ export class WalletService {
   public getBalance(blockchainNodeUrl): Observable<AddressBalance>{
     return this.http.get<AddressBalance>(blockchainNodeUrl + `/address/${this.wallet.address}/balance`)
       .pipe(
-        catchError(this.handleError)
+        catchError(this.errorHandlerService.handleError)
       );
   }
-
-  private handleError(error: HttpErrorResponse) {
-    if (error.error instanceof ErrorEvent) {
-      // A client-side or network error occurred. Handle it accordingly.
-      console.error('An error occurred:', error.error.message);
-    } else {
-      // The backend returned an unsuccessful response code.
-      // The response body may contain clues as to what went wrong,
-      console.error(
-        `Backend returned code ${error.status}, ` +
-        `body was: ${error.error}`);
-    }
-    // return an ErrorObservable with a user-facing error message
-    return new ErrorObservable(
-      'Something bad happened; please try again later.');
-  };
 }

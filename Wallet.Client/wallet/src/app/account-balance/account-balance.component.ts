@@ -19,6 +19,8 @@ export class AccountBalanceComponent implements OnInit {
 
   private balanceForAddress: AddressBalance;
 
+  private errorMessage: string;
+
   constructor(private walletService: WalletService) { }
 
   ngOnInit() {
@@ -29,8 +31,11 @@ export class AccountBalanceComponent implements OnInit {
   }
 
   public displayBalance(): void {
-    this.walletService.getBalance(this.blockchainNodeUrl).subscribe((addressBalance: AddressBalance) => {
-      this.balanceForAddress = addressBalance;
-    });
+    this.balanceForAddress = null;
+
+    this.walletService.getBalance(this.blockchainNodeUrl).subscribe(
+      addressBalance => this.balanceForAddress = { ...addressBalance },
+      error => this.errorMessage = error
+    );
   }
 }

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
 
 namespace Node.Api.Models
 {
@@ -7,6 +8,7 @@ namespace Node.Api.Models
         public int Confirmations { get; set; }
 
         [Display(Name ="Balance")]
+        [JsonProperty(PropertyName = "balance")]
         public long BalanceValue { get; set; }
     }
 }
