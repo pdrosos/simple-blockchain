@@ -89,7 +89,8 @@ namespace Node.Api.Services
             signatureVerificationResult = this.cryptographyHelpers.VerifySignatureUsingSecp256k1(
                 transaction.SenderPubKey, 
                 transaction.SenderSignature, 
-                transactionSignatureDataModelJson);
+                transactionSignatureDataModelJson
+            );
 
             return signatureVerificationResult;
         }

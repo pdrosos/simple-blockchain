@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 
 import * as CryptoJS from 'crypto-js';
-  
+
 @Injectable()
 export class CryptographyService {
 
   private secp256k1 = new elliptic.ec('secp256k1');
-  
+
   constructor() { }
 
   public generatePrivateKey(): string {
@@ -15,11 +15,21 @@ export class CryptographyService {
     return privateKey;
   }
 
-  public privateKeyToPublicKey(privateKey): string {
+  // public privateKeyToPublicKey(privateKey): string {
+  //   let keyPair = this.secp256k1.keyFromPrivate(privateKey);
+  //   let publicKey = keyPair.getPublic().getX().toString(16) +
+  //       (keyPair.getPublic().getY().isOdd() ? "1" : "0");
+  //   return publicKey;
+  // }
+
+  public privateKeyToPublicKey(privateKey) {
     let keyPair = this.secp256k1.keyFromPrivate(privateKey);
-    let publicKey = keyPair.getPublic().getX().toString(16) +
-        (keyPair.getPublic().getY().isOdd() ? "1" : "0");
-    return publicKey;
+    let publicKey = keyPair.getPublic();
+
+    let prefix = publicKey.getY().isOdd() ? "03" : "02";
+    let x = publicKey.getX().toString(16);
+
+    return prefix + x;
   }
 
   public publicKeyToAddress(publicKey): string {
@@ -54,6 +64,6 @@ export class CryptographyService {
   }
 
   public sha256(data): string {
-    return CryptoJS.SHA256(data).toString();
+    return CryptoJS.SHA256(data).toString(CryptoJS.enc.Hex);
   }
 }

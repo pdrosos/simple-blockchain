@@ -40,7 +40,7 @@ export class WalletService {
   }
 
   constructor(
-    private cryptographyService: CryptographyService, 
+    private cryptographyService: CryptographyService,
     private http: HttpClient,
     private errorHandlerService: ErrorHandlerService) {
   }
@@ -100,7 +100,9 @@ export class WalletService {
     console.log('transactionJSON:');
     console.log(transactionJSON);
 
-    transactionPostModel.senderSignature = this.cryptographyService.signData(transactionJSON, this.wallet.privateKey);
+    let transactionHash = this.cryptographyService.sha256(transactionJSON);
+
+    transactionPostModel.senderSignature = this.cryptographyService.signData(transactionHash, this.wallet.privateKey);
   }
 
   public sendTransaction(blockchainNodeUrl: string, transaction: Transaction): Observable<TransactionSubmissionResponse> {

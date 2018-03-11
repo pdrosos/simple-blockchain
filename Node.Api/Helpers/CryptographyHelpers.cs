@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Text;
 using System.Linq;
+using System.Security.Cryptography;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Security;
@@ -12,6 +12,7 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Crypto.Signers;
+using ECPoint = Org.BouncyCastle.Math.EC.ECPoint;
 
 namespace Node.Api.Helpers
 {
@@ -37,17 +38,20 @@ namespace Node.Api.Helpers
 
         public byte[] CalcSHA256BytesArray(string text)
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(text);
-
-            Sha256Digest digest = new Sha256Digest();
-
-            digest.BlockUpdate(bytes, 0, bytes.Length);
-
-            byte[] result = new byte[digest.GetDigestSize()];
-
-            digest.DoFinal(result, 0);
-
-            return result;
+            return SHA256Managed.Create()
+                .ComputeHash(Encoding.ASCII.GetBytes(text));
+            
+//            byte[] bytes = Encoding.UTF8.GetBytes(text);
+//
+//            Sha256Digest digest = new Sha256Digest();
+//
+//            digest.BlockUpdate(bytes, 0, bytes.Length);
+//
+//            byte[] result = new byte[digest.GetDigestSize()];
+//
+//            digest.DoFinal(result, 0);
+//
+//            return result;
         }
 
         public string CalcRipeMD160(string text)
@@ -141,9 +145,12 @@ namespace Node.Api.Helpers
 
         public bool VerifySignatureUsingSecp256k1(string publicKey, string[] signature, string message)
         {
-            byte[] publicKeyBytes = Encoding.UTF8.GetBytes(publicKey);
+            // byte[] publicKeyBytes = Encoding.UTF8.GetBytes(publicKey);
+            byte[] publicKeyBytes = ConvertHexStringToByteArray(publicKey);
             // byte[] messageBytes = Encoding.UTF8.GetBytes(message);
             byte[] messageBytes = CalcSHA256BytesArray(message);
+            BigInteger[] signatureBigInteger = this.ConvertHexSignatureToBigInteger(signature);
+            //var senderSignature = ConvertHexStringToByteArray(signature);
 
             X9ECParameters parameters = SecNamedCurves.GetByName("secp256k1");
             var ecParameters = new ECDomainParameters(parameters.Curve, parameters.G, parameters.N, parameters.H);
@@ -152,8 +159,6 @@ namespace Node.Api.Helpers
 
             var signer = new ECDsaSigner();
             signer.Init(false, publicKeyParameters);
-
-            BigInteger[] signatureBigInteger = this.ConvertHexSignatureToBigInteger(signature);
 
             return signer.VerifySignature(messageBytes, signatureBigInteger[0].Abs(), signatureBigInteger[1].Abs());
         }
@@ -196,15 +201,20 @@ namespace Node.Api.Helpers
 
         private byte[] ConvertHexStringToByteArray(string hex)
         {
-            int numberChars = hex.Length;
-            byte[] bytes = new byte[numberChars / 2];
-
-            for (int i = 0; i < numberChars; i += 2)
-            {
-                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
-            }
-                
-            return bytes;
+            return Enumerable.Range(0, hex.Length)
+                .Where(x => x % 2 == 0)
+                .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
+                .ToArray();
+            
+//            int numberChars = hex.Length;
+//            byte[] bytes = new byte[numberChars / 2];
+//
+//            for (int i = 0; i < numberChars; i += 2)
+//            {
+//                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+//            }
+//                
+//            return bytes;
         }
     }
 }
