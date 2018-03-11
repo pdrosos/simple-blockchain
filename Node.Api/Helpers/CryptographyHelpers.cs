@@ -141,8 +141,9 @@ namespace Node.Api.Helpers
 
         public bool VerifySignatureUsingSecp256k1(string publicKey, string[] signature, string message)
         {
-            byte[] publicKeyBytes = this.ConvertHexStringToByteArray(publicKey);
-            byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+            byte[] publicKeyBytes = Encoding.UTF8.GetBytes(publicKey);
+            // byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+            byte[] messageBytes = CalcSHA256BytesArray(message);
 
             X9ECParameters parameters = SecNamedCurves.GetByName("secp256k1");
             var ecParameters = new ECDomainParameters(parameters.Curve, parameters.G, parameters.N, parameters.H);
