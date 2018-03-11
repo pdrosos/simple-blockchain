@@ -10,7 +10,6 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Crypto.Signers;
 using ECPoint = Org.BouncyCastle.Math.EC.ECPoint;
 
@@ -38,20 +37,22 @@ namespace Node.Api.Helpers
 
         public byte[] CalcSHA256BytesArray(string text)
         {
-            return SHA256Managed.Create()
-                .ComputeHash(Encoding.ASCII.GetBytes(text));
-            
-//            byte[] bytes = Encoding.UTF8.GetBytes(text);
-//
-//            Sha256Digest digest = new Sha256Digest();
-//
-//            digest.BlockUpdate(bytes, 0, bytes.Length);
-//
-//            byte[] result = new byte[digest.GetDigestSize()];
-//
-//            digest.DoFinal(result, 0);
-//
-//            return result;
+            byte[] bytes = Encoding.UTF8.GetBytes(text);
+
+            Sha256Digest digest = new Sha256Digest();
+
+            digest.BlockUpdate(bytes, 0, bytes.Length);
+
+            byte[] result = new byte[digest.GetDigestSize()];
+
+            digest.DoFinal(result, 0);
+
+            return result;
+        }
+
+        public byte[] CalcSHA256BytesArrayDotNet(string text)
+        {
+            return SHA256Managed.Create().ComputeHash(Encoding.UTF8.GetBytes(text));
         }
 
         public string CalcRipeMD160(string text)
@@ -143,27 +144,20 @@ namespace Node.Api.Helpers
             return point;
         }
 
-        public bool VerifySignatureUsingSecp256k1(string publicKey, string[] signature, string message)
+        public bool VerifySignatureUsingSecp256k1(byte[] publicKey, BigInteger[] signature, byte[] message)
         {
-            // byte[] publicKeyBytes = Encoding.UTF8.GetBytes(publicKey);
-            byte[] publicKeyBytes = ConvertHexStringToByteArray(publicKey);
-            // byte[] messageBytes = Encoding.UTF8.GetBytes(message);
-            byte[] messageBytes = CalcSHA256BytesArray(message);
-            BigInteger[] signatureBigInteger = this.ConvertHexSignatureToBigInteger(signature);
-            //var senderSignature = ConvertHexStringToByteArray(signature);
-
             X9ECParameters parameters = SecNamedCurves.GetByName("secp256k1");
             var ecParameters = new ECDomainParameters(parameters.Curve, parameters.G, parameters.N, parameters.H);
-            ECPoint q = ecParameters.Curve.DecodePoint(publicKeyBytes);
+            ECPoint q = ecParameters.Curve.DecodePoint(publicKey);
             var publicKeyParameters = new ECPublicKeyParameters(q, ecParameters);
 
             var signer = new ECDsaSigner();
             signer.Init(false, publicKeyParameters);
 
-            return signer.VerifySignature(messageBytes, signatureBigInteger[0].Abs(), signatureBigInteger[1].Abs());
+            return signer.VerifySignature(message, signature[0].Abs(), signature[1].Abs());
         }
 
-        private BigInteger[] ConvertHexSignatureToBigInteger(string[] signature)
+        public BigInteger[] ConvertHexSignatureToBigInteger(string[] signature)
         {
             var signatureR = new BigInteger(signature[0], 16);
             var signatureS = new BigInteger(signature[1], 16);
@@ -193,28 +187,20 @@ namespace Node.Api.Helpers
             return hex.ToString();
         }
 
-        private byte[] ConvertStringToByteArray(string data)
+        public byte[] ConvertStringToByteArray(string data)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(data);
             return bytes;
         }
 
-        private byte[] ConvertHexStringToByteArray(string hex)
+        public byte[] ConvertHexStringToByteArray(string hex)
         {
-            return Enumerable.Range(0, hex.Length)
+            byte[] bytes = Enumerable.Range(0, hex.Length)
                 .Where(x => x % 2 == 0)
                 .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
                 .ToArray();
-            
-//            int numberChars = hex.Length;
-//            byte[] bytes = new byte[numberChars / 2];
-//
-//            for (int i = 0; i < numberChars; i += 2)
-//            {
-//                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
-//            }
-//                
-//            return bytes;
+
+            return bytes;
         }
     }
 }

@@ -27,6 +27,12 @@ namespace Node.Api.Helpers
 
         ECPoint DecodeECPointPublicKey(string input);
 
-        bool VerifySignatureUsingSecp256k1(string publicKey, string[] signature, string message);
+        bool VerifySignatureUsingSecp256k1(byte[] publicKey, BigInteger[] signature, byte[] message);
+
+        byte[] ConvertHexStringToByteArray(string hex);
+
+        BigInteger[] ConvertHexSignatureToBigInteger(string[] signature);
+
+        byte[] ConvertStringToByteArray(string data);
     }
 }

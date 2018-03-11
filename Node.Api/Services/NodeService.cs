@@ -6,6 +6,7 @@ using Node.Api.Models;
 using Node.Api.Services.Abstractions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using Org.BouncyCastle.Math;
 
 namespace Node.Api.Services
 {
@@ -86,10 +87,14 @@ namespace Node.Api.Services
             string transactionSignatureDataModelJson = 
                 JsonConvert.SerializeObject(transactionSignatureDataModel, jsonSerializerSettings);
 
+            byte[] publicKeyBytes = this.cryptographyHelpers.ConvertHexStringToByteArray(transaction.SenderPubKey);
+            BigInteger[] signatureBigInteger = this.cryptographyHelpers.ConvertHexSignatureToBigInteger(transaction.SenderSignature);
+            byte[] messageBytes = this.cryptographyHelpers.CalcSHA256BytesArray(transactionSignatureDataModelJson);
+
             signatureVerificationResult = this.cryptographyHelpers.VerifySignatureUsingSecp256k1(
-                transaction.SenderPubKey, 
-                transaction.SenderSignature, 
-                transactionSignatureDataModelJson
+                publicKeyBytes,
+                signatureBigInteger,
+                messageBytes
             );
 
             return signatureVerificationResult;
