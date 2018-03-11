@@ -43,13 +43,15 @@ namespace Node.Api
 
             services.AddAutoMapper();
 
-            services.AddSingleton<INodeService, NodeService>();
-
             services.AddSingleton<IDataService, DataService>();
 
             services.AddSingleton<IMockedDataService, MockedDataService>();
 
-            services.AddScoped<IHttpContextHelpers, HttpContextHelpers>();
+            services.AddSingleton<ICryptographyHelpers, CryptographyHelpers>();
+
+            services.AddSingleton<IDateTimeHelpers, DateTimeHelpers>();
+
+            services.AddScoped<INodeService, NodeService>();
 
             services.AddScoped<IBlockService, BlockService>();
 
@@ -60,6 +62,8 @@ namespace Node.Api
             services.AddScoped<IPeerService, PeerService>();
 
             services.AddScoped<IMiningService, MiningService>();
+
+            services.AddScoped<IHttpContextHelpers, HttpContextHelpers>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

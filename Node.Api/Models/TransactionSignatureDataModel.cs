@@ -21,6 +21,6 @@ namespace Node.Api.Models
         public long Fee { get; set; }
 
         [JsonProperty(Order = 6)]
-        public DateTime DateCreated { get; set; }
+        public string DateCreated { get; set; }
     }
 }

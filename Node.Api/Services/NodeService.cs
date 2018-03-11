@@ -4,6 +4,8 @@ using AutoMapper;
 using Node.Api.Helpers;
 using Node.Api.Models;
 using Node.Api.Services.Abstractions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Node.Api.Services
 {
@@ -13,11 +15,23 @@ namespace Node.Api.Services
 
         private readonly IDataService dataService;
 
-        public NodeService(IMapper mapper, IDataService dataService)
+        private readonly ICryptographyHelpers cryptographyHelpers;
+
+        private readonly IDateTimeHelpers dateTimeHelpers;
+
+        public NodeService(
+            IMapper mapper, 
+            IDataService dataService, 
+            ICryptographyHelpers cryptographyHelpers,
+            IDateTimeHelpers dateTimeHelpers)
         {
             this.mapper = mapper;
 
             this.dataService = dataService;
+
+            this.cryptographyHelpers = cryptographyHelpers;
+
+            this.dateTimeHelpers = dateTimeHelpers;
         }
 
         public TransactionSubmissionResponse AddTransaction(Transaction transaction)
@@ -48,11 +62,34 @@ namespace Node.Api.Services
         {
             bool signatureVerificationResult;
 
-            var transactionSignatureDataModel = mapper.Map<Transaction, TransactionSignatureDataModel>(transaction);
+            var transactionSignatureDataModel = new TransactionSignatureDataModel
+            {
+                From = transaction.From,
+                To = transaction.To,
+                SenderPubKey = transaction.SenderPubKey,
+                Value = transaction.Value,
+                Fee = transaction.Fee,
+                DateCreated = this.dateTimeHelpers.ConvertDateTimeToUniversalTimeISO8601String(transaction.DateCreated)
+            };
 
-            // TODO: Verify signature using elliptic curve cryptography algorithm secp256k1 / ECDSA
-            // BouncyCastle library can be used : ISigner - signer.VerifySignature()
-            signatureVerificationResult = true;
+            DefaultContractResolver contractResolver = new DefaultContractResolver
+            {
+                NamingStrategy = new CamelCaseNamingStrategy()
+            };
+
+            var jsonSerializerSettings = new JsonSerializerSettings
+            {
+                ContractResolver = contractResolver,
+                Formatting = Formatting.None
+            };
+
+            string transactionSignatureDataModelJson = 
+                JsonConvert.SerializeObject(transactionSignatureDataModel, jsonSerializerSettings);
+
+            signatureVerificationResult = this.cryptographyHelpers.VerifySignatureUsingSecp256k1(
+                transaction.SenderPubKey, 
+                transaction.SenderSignature, 
+                transactionSignatureDataModelJson);
 
             return signatureVerificationResult;
         }
@@ -67,18 +104,24 @@ namespace Node.Api.Services
 
         private string CalculateTransactionHash(Transaction transaction)
         {
-            // Generating Date Time string using ISO8601 standard
-            string transactionDateCreated = transaction.DateCreated.ToUniversalTime().ToString("o");
+            string concatenatedTransactionProperties = this.ConcatenateTransactionProperties(transaction);
 
-            string concatenatedTransactionPropertyValues =
-                transaction.From + transaction.To +
-                transaction.SenderPubKey + transaction.Value +
-                transaction.Fee + transactionDateCreated + 
-                transaction.SenderSignature[0] + transaction.SenderSignature[1];
-
-            string transactionHash = Crypto.Sha256(concatenatedTransactionPropertyValues);
+            string transactionHash = this.cryptographyHelpers.CalcSHA256(concatenatedTransactionProperties);
 
             return transactionHash;
+        }
+
+        private string ConcatenateTransactionProperties(Transaction transaction)
+        {
+            string transactionDateCreated = this.dateTimeHelpers.ConvertDateTimeToUniversalTimeISO8601String(transaction.DateCreated);
+
+            string concatenatedTransactionProperties =
+                transaction.From + transaction.To +
+                transaction.SenderPubKey + transaction.Value +
+                transaction.Fee + transactionDateCreated +
+                transaction.SenderSignature[0] + transaction.SenderSignature[1];
+
+            return concatenatedTransactionProperties;
         }
     }
 }

@@ -105,7 +105,7 @@ export class WalletService {
 
   public sendTransaction(blockchainNodeUrl: string, transaction: Transaction): Observable<TransactionSubmissionResponse> {
 
-    let requestUrl = `${blockchainNodeUrl}/transactions/send`; 
+    let requestUrl = `${blockchainNodeUrl}/transactions/send`;
 
     return this.http.post<TransactionSubmissionResponse>(requestUrl, transaction, httpOptions)
       .pipe(

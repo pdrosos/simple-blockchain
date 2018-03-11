@@ -1,46 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System;
 using System.ComponentModel.DataAnnotations;
-
-using Newtonsoft.Json;
 
 namespace Node.Api.Models
 {
     public class Transaction
     {
         [Required(ErrorMessage = "Invalid transaction: field 'from' is missing")]
-        [JsonProperty(Order = 1)]
         public string From { get; set; }
 
         [Required(ErrorMessage = "Invalid transaction: field 'to' is missing")]
-        [JsonProperty(Order = 2)]
         public string To { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore, Order = 3)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string SenderPubKey { get; set; }
 
         [Required(ErrorMessage = "Invalid transaction: field 'value' is missing")]
-        [JsonProperty(Order = 4)]
         public long Value { get; set; }
 
         [Required(ErrorMessage = "Invalid transaction: field 'fee' is missing")]
-        [JsonProperty(Order = 5)]
         public long Fee { get; set; }
 
         [Required(ErrorMessage = "Invalid transaction: field 'dateCreated' is missing")]
-        [JsonProperty(Order = 6)]
         public DateTime DateCreated { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore, Order = 7)]
-        public List<string> SenderSignature { get; set; }
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string[] SenderSignature { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore, Order = 8)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string TransactionHash { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore, Order = 9)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public long? MinedInBlockIndex { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore, Order = 10)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public bool? TransferSuccessful { get; set; }
     }
 }
