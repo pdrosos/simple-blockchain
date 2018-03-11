@@ -1,10 +1,11 @@
 ﻿namespace Node.Api.Controllers
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
+
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
-
     using Node.Api.Models;
     using Node.Api.Services.Abstractions;
 
@@ -13,13 +14,17 @@
     {
         private readonly IMockedDataService mockedDataService;
 
+        private readonly INodeService nodeService;
+
         private readonly ITransactionService transactionService;
 
-        public TransactionsController(IMockedDataService mockedDataService, ITransactionService transactionService)
+        public TransactionsController(IMockedDataService mockedDataService, ITransactionService transactionService, INodeService nodeService)
         {
             this.mockedDataService = mockedDataService;
 
             this.transactionService = transactionService;
+
+            this.nodeService = nodeService;
         }
 
         // GET transactions/23fe06345cc864aed086465ff8276c9ec3ac267
@@ -71,9 +76,16 @@
                 return BadRequest(new { ErrorMsg = firstModelError.ErrorMessage });
             }
 
-            //TODO: Add transaction to pending transactions, send transaction to other nodes
+            TransactionSubmissionResponse transactionSubmissionResponse = null;
 
-            var transactionSubmissionResponse = new TransactionSubmissionResponse();
+            try
+            {
+                transactionSubmissionResponse = this.nodeService.AddTransaction(transaction);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { ErrorMsg = ex.Message });
+            }
 
             return Ok(transactionSubmissionResponse);
         }

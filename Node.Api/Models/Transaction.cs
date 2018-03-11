@@ -34,7 +34,7 @@ namespace Node.Api.Models
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore, Order = 7)]
         public List<string> SenderSignature { get; set; }
 
-        [JsonProperty(Order = 8)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore, Order = 8)]
         public string TransactionHash { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore, Order = 9)]

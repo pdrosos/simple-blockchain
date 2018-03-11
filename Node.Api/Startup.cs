@@ -1,15 +1,16 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+
+using AutoMapper;
+
 using Node.Api.Configuration;
+using Node.Api.Helpers;
 using Node.Api.Models;
 using Node.Api.Services;
 using Node.Api.Services.Abstractions;
-using Node.Api.Helpers;
 
 namespace Node.Api
 {
@@ -39,6 +40,8 @@ namespace Node.Api
             });
 
             services.AddMvc();
+
+            services.AddAutoMapper();
 
             services.AddSingleton<INodeService, NodeService>();
 

@@ -1,6 +1,4 @@
-﻿using Node.Api.Models;
-using Node.Api.Services.Abstractions;
-using System.Collections.Generic;
+﻿using Node.Api.Services.Abstractions;
 
 namespace Node.Api.Services
 {
@@ -11,24 +9,6 @@ namespace Node.Api.Services
         public TransactionService(IDataService dataService)
         {
             this.dataService = dataService;
-        }
-
-        public string CalculateTransactionHash(Transaction transaction)
-        {
-            return string.Empty;
-        }
-
-        public bool IsCollisionDetected(Transaction transaction)
-        {
-            return false;
-        }
-
-        public void AddTransactionToPendingTransactions(Transaction transaction, List<Transaction> pendingTransactions)
-        {
-        }
-
-        public void SendTransactionToPeerNodes(List<string> peerNodes)
-        {
         }
     }
 }
