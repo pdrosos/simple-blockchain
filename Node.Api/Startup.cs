@@ -64,6 +64,8 @@ namespace Node.Api
             services.AddScoped<IMiningService, MiningService>();
 
             services.AddScoped<IHttpContextHelpers, HttpContextHelpers>();
+
+            services.AddScoped<IHttpHelpers, HttpHelpers>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

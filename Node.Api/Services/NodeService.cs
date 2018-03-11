@@ -7,11 +7,14 @@ using Node.Api.Services.Abstractions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Org.BouncyCastle.Math;
+using System.Threading.Tasks;
 
 namespace Node.Api.Services
 {
     public class NodeService : INodeService
     {
+        const string TransactionApiPath = "transactions";
+
         private readonly IMapper mapper;
 
         private readonly IDataService dataService;
@@ -20,11 +23,14 @@ namespace Node.Api.Services
 
         private readonly IDateTimeHelpers dateTimeHelpers;
 
+        private readonly IHttpHelpers httpHelpers;
+
         public NodeService(
             IMapper mapper, 
             IDataService dataService, 
             ICryptographyHelpers cryptographyHelpers,
-            IDateTimeHelpers dateTimeHelpers)
+            IDateTimeHelpers dateTimeHelpers,
+            IHttpHelpers httpHelpers)
         {
             this.mapper = mapper;
 
@@ -33,6 +39,8 @@ namespace Node.Api.Services
             this.cryptographyHelpers = cryptographyHelpers;
 
             this.dateTimeHelpers = dateTimeHelpers;
+
+            this.httpHelpers = httpHelpers;
         }
 
         public TransactionSubmissionResponse AddTransaction(Transaction transaction)
@@ -45,6 +53,10 @@ namespace Node.Api.Services
             }
 
             string transactionHash = this.CalculateTransactionHash(transaction);
+
+            transaction.TransactionHash = transactionHash;
+
+            this.dataService.PendingTransactions.Add(transaction);
 
             var transactionSubmissionResponse = new TransactionSubmissionResponse()
             {
@@ -100,8 +112,18 @@ namespace Node.Api.Services
             return signatureVerificationResult;
         }
 
-        public void AddTransactionToPendingTransactions(Transaction transaction, List<Transaction> pendingTransactions)
+        private void SendTransactionToPeers(Transaction transaction)
         {
+            var tasks = new List<Task>();
+
+            List<string> peers = this.dataService.NodeInfo.PeersListUrls;
+
+            peers.ForEach(peer =>
+            {
+                tasks.Add(Task.Run(() => this.httpHelpers.DoApiPost(peer, TransactionApiPath, transaction)));
+            });
+
+            Task.WaitAll(tasks.ToArray());
         }
 
         public void SendTransactionToPeerNodes(List<string> peerNodes)

@@ -15,13 +15,6 @@ export class CryptographyService {
     return privateKey;
   }
 
-  // public privateKeyToPublicKey(privateKey): string {
-  //   let keyPair = this.secp256k1.keyFromPrivate(privateKey);
-  //   let publicKey = keyPair.getPublic().getX().toString(16) +
-  //       (keyPair.getPublic().getY().isOdd() ? "1" : "0");
-  //   return publicKey;
-  // }
-
   public privateKeyToPublicKey(privateKey) {
     let keyPair = this.secp256k1.keyFromPrivate(privateKey);
     let publicKey = keyPair.getPublic();

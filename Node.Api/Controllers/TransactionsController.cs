@@ -8,18 +8,27 @@
     using Microsoft.AspNetCore.Mvc.ModelBinding;
     using Node.Api.Models;
     using Node.Api.Services.Abstractions;
+    using Microsoft.AspNetCore.Http;
 
     [Route("[controller]")]
     public class TransactionsController : Controller
     {
+        private readonly IDataService dataService;
+
         private readonly IMockedDataService mockedDataService;
 
         private readonly INodeService nodeService;
 
         private readonly ITransactionService transactionService;
 
-        public TransactionsController(IMockedDataService mockedDataService, ITransactionService transactionService, INodeService nodeService)
+        public TransactionsController(
+            IDataService dataService, 
+            IMockedDataService mockedDataService, 
+            ITransactionService transactionService, 
+            INodeService nodeService)
         {
+            this.dataService = dataService;
+
             this.mockedDataService = mockedDataService;
 
             this.transactionService = transactionService;
@@ -88,6 +97,32 @@
             }
 
             return Ok(transactionSubmissionResponse);
+        }
+
+        // POST transactions
+        [HttpPost]
+        public IActionResult AddTransactionFromAnotherNode([FromBody]Transaction transaction)
+        {
+            if (!ModelState.IsValid)
+            {
+                ModelError firstModelError = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .FirstOrDefault();
+
+                return BadRequest(new { ErrorMsg = firstModelError.ErrorMessage });
+            }
+
+            bool transactionExistsInPendingTransactions = 
+                this.dataService.PendingTransactions.Any(t => t.TransactionHash == transaction.TransactionHash);
+
+            if (transactionExistsInPendingTransactions)
+            {
+                return StatusCode(StatusCodes.Status409Conflict);
+            }
+
+            this.dataService.PendingTransactions.Add(transaction);
+
+            return Ok(new { Message = $"Added transaction (Hash: {transaction.TransactionHash}) to pending transactions" });
         }
     }
 }

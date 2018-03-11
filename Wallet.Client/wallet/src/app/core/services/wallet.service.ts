@@ -97,9 +97,6 @@ export class WalletService {
 
     let transactionJSON = JSON.stringify(transaction);
 
-    console.log('transactionJSON:');
-    console.log(transactionJSON);
-
     let transactionHash = this.cryptographyService.sha256(transactionJSON);
 
     transactionPostModel.senderSignature = this.cryptographyService.signData(transactionHash, this.wallet.privateKey);
