@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
 using AutoMapper;
-using Node.Api.Helpers;
-using Node.Api.Models;
-using Node.Api.Services.Abstractions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Org.BouncyCastle.Math;
-using System.Threading.Tasks;
+
+using Node.Api.Helpers;
+using Node.Api.Models;
+using Node.Api.Services.Abstractions;
 
 namespace Node.Api.Services
 {
@@ -56,7 +59,18 @@ namespace Node.Api.Services
 
             transaction.TransactionHash = transactionHash;
 
+            var collisionDetected = this.IsCollisionDetected(transactionHash, this.dataService.PendingTransactions);
+
+            if (collisionDetected)
+            {
+                throw new Exception("Collision detected");
+            }
+
             this.dataService.PendingTransactions.Add(transaction);
+
+            List<string> peers = this.dataService.NodeInfo.PeersListUrls;
+
+            this.SendTransactionToPeers(transaction, peers);
 
             var transactionSubmissionResponse = new TransactionSubmissionResponse()
             {
@@ -66,9 +80,11 @@ namespace Node.Api.Services
             return transactionSubmissionResponse;
         }
 
-        public bool IsCollisionDetected(Transaction transaction)
+        public bool IsCollisionDetected(string transactionHash, List<Transaction> pendingTransactions)
         {
-            return false;
+            bool collisionDetected = pendingTransactions.Any(t => t.TransactionHash == transactionHash);
+
+            return collisionDetected;
         }
 
         private bool VerifySignature(Transaction transaction)
@@ -112,11 +128,9 @@ namespace Node.Api.Services
             return signatureVerificationResult;
         }
 
-        private void SendTransactionToPeers(Transaction transaction)
+        private void SendTransactionToPeers(Transaction transaction, List<string> peers)
         {
             var tasks = new List<Task>();
-
-            List<string> peers = this.dataService.NodeInfo.PeersListUrls;
 
             peers.ForEach(peer =>
             {
@@ -124,10 +138,6 @@ namespace Node.Api.Services
             });
 
             Task.WaitAll(tasks.ToArray());
-        }
-
-        public void SendTransactionToPeerNodes(List<string> peerNodes)
-        {
         }
 
         private string CalculateTransactionHash(Transaction transaction)

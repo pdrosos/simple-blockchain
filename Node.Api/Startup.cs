@@ -87,6 +87,12 @@ namespace Node.Api
                 Difficulty = appSettings.Difficulty,
                 PeersListUrls = new List<string>()
             };
+
+            dataService.PendingTransactions = new List<Transaction>();
+
+            dataService.Blocks = new List<Block>();
+
+            dataService.MiningJobs = new Dictionary<string, Block>();
         }
     }
 }
