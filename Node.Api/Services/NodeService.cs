@@ -93,24 +93,29 @@ namespace Node.Api.Services
 
             int sentToPeersCount = transaction.AlreadySentToPeers.Count;
 
-            int storageLimit = 100;
+            const int storageLimit = 100;
 
             if (sentToPeersCount > storageLimit)
             {
-                for (int i = sentToPeersCount - 1; i  >= storageLimit; i--)
+                int peersForRemovalCount = sentToPeersCount - storageLimit;
+
+                for (int i = 0; i  < peersForRemovalCount; i++)
                 {
                     transaction.AlreadySentToPeers.RemoveAt(i);
                 }
             }
 
-            var tasks = new List<Task>();
-
-            notYetSentToPeers.ForEach(peerUrl =>
+            if (notYetSentToPeers != null && notYetSentToPeers.Count > 0)
             {
-                tasks.Add(Task.Run(() => this.httpHelpers.DoApiPost(peerUrl, TransactionApiPath, transaction)));
-            });
+                var tasks = new List<Task>();
 
-            Task.WaitAll(tasks.ToArray());
+                notYetSentToPeers.ForEach(peerUrl =>
+                {
+                    tasks.Add(Task.Run(() => this.httpHelpers.DoApiPost(peerUrl, TransactionApiPath, transaction)));
+                });
+
+                Task.WaitAll(tasks.ToArray());
+            }
         }
 
         public bool IsCollisionDetected(string transactionHash, List<Transaction> pendingTransactions)
