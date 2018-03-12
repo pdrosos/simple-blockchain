@@ -5,3 +5,4 @@ Simple blockchain project for the SoftUni Blockchain Dev Camp - Sofia - February
 The project consists of:
 - [x] Node
 - [x] Miner
+- [x] Wallet
