@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -28,12 +27,15 @@ namespace Node.Api.Services
 
         private readonly IHttpHelpers httpHelpers;
 
+        private readonly IHttpContextHelpers httpContextHelpers;
+
         public NodeService(
             IMapper mapper, 
             IDataService dataService, 
             ICryptographyHelpers cryptographyHelpers,
             IDateTimeHelpers dateTimeHelpers,
-            IHttpHelpers httpHelpers)
+            IHttpHelpers httpHelpers,
+            IHttpContextHelpers httpContextHelpers)
         {
             this.mapper = mapper;
 
@@ -44,40 +46,71 @@ namespace Node.Api.Services
             this.dateTimeHelpers = dateTimeHelpers;
 
             this.httpHelpers = httpHelpers;
+
+            this.httpContextHelpers = httpContextHelpers;
         }
 
         public TransactionSubmissionResponse AddTransaction(Transaction transaction)
         {
             bool signatureVerificationResult = this.VerifySignature(transaction);
 
+            var transactionSubmissionResponse = new TransactionSubmissionResponse();
+
             if (signatureVerificationResult == false)
             {
-                throw new Exception("Signature verification not successful"); 
+                transactionSubmissionResponse.StatusCode = 400; // Bad request
+                transactionSubmissionResponse.Message = "Signature verification failed";
+
+                return transactionSubmissionResponse;
             }
 
             string transactionHash = this.CalculateTransactionHash(transaction);
-
-            transaction.TransactionHash = transactionHash;
 
             var collisionDetected = this.IsCollisionDetected(transactionHash, this.dataService.PendingTransactions);
 
             if (collisionDetected)
             {
-                throw new Exception("Collision detected");
+                transactionSubmissionResponse.StatusCode = 409;
+                transactionSubmissionResponse.Message = "Collision has been detected";
+
+                return transactionSubmissionResponse;
             }
+
+            transaction.TransactionHash = transactionHash;
 
             this.dataService.PendingTransactions.Add(transaction);
 
+            return transactionSubmissionResponse;
+        }
+
+        public void SendTransactionToPeers(Transaction transaction, string currentPeerUrl)
+        {
             List<string> peers = this.dataService.NodeInfo.PeersListUrls;
 
-            this.SendTransactionToPeers(transaction, peers);
+            List<string> notYetSentToPeers = peers.Where(p => !transaction.AlreadySentToPeers.Any(url => url == p)).ToList();
 
-            var transactionSubmissionResponse = new TransactionSubmissionResponse()
+            transaction.AlreadySentToPeers.AddRange(notYetSentToPeers);
+
+            int sentToPeersCount = transaction.AlreadySentToPeers.Count;
+
+            int storageLimit = 100;
+
+            if (sentToPeersCount > storageLimit)
             {
-                TransactionHash = transactionHash
-            };
+                for (int i = sentToPeersCount - 1; i  >= storageLimit; i--)
+                {
+                    transaction.AlreadySentToPeers.RemoveAt(i);
+                }
+            }
 
-            return transactionSubmissionResponse;
+            var tasks = new List<Task>();
+
+            notYetSentToPeers.ForEach(peerUrl =>
+            {
+                tasks.Add(Task.Run(() => this.httpHelpers.DoApiPost(peerUrl, TransactionApiPath, transaction)));
+            });
+
+            Task.WaitAll(tasks.ToArray());
         }
 
         public bool IsCollisionDetected(string transactionHash, List<Transaction> pendingTransactions)
@@ -126,18 +159,6 @@ namespace Node.Api.Services
             );
 
             return signatureVerificationResult;
-        }
-
-        private void SendTransactionToPeers(Transaction transaction, List<string> peers)
-        {
-            var tasks = new List<Task>();
-
-            peers.ForEach(peer =>
-            {
-                tasks.Add(Task.Run(() => this.httpHelpers.DoApiPost(peer, TransactionApiPath, transaction)));
-            });
-
-            Task.WaitAll(tasks.ToArray());
         }
 
         private string CalculateTransactionHash(Transaction transaction)

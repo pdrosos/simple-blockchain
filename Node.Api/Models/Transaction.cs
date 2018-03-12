@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Node.Api.Models
@@ -35,5 +36,8 @@ namespace Node.Api.Models
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public bool? TransferSuccessful { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public List<string> AlreadySentToPeers { get; set; }
     }
 }

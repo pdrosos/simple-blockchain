@@ -1,14 +1,13 @@
 ﻿namespace Node.Api.Controllers
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
-
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
+
+    using Node.Api.Helpers;
     using Node.Api.Models;
     using Node.Api.Services.Abstractions;
-    using Microsoft.AspNetCore.Http;
 
     [Route("[controller]")]
     public class TransactionsController : Controller
@@ -21,11 +20,14 @@
 
         private readonly ITransactionService transactionService;
 
+        private readonly IHttpContextHelpers httpContextHelpers;
+
         public TransactionsController(
             IDataService dataService, 
             IMockedDataService mockedDataService, 
             ITransactionService transactionService, 
-            INodeService nodeService)
+            INodeService nodeService,
+            IHttpContextHelpers httpContextHelpers)
         {
             this.dataService = dataService;
 
@@ -34,6 +36,8 @@
             this.transactionService = transactionService;
 
             this.nodeService = nodeService;
+
+            this.httpContextHelpers = httpContextHelpers;
         }
 
         // GET transactions/23fe06345cc864aed086465ff8276c9ec3ac267
@@ -85,44 +89,20 @@
                 return BadRequest(new { ErrorMsg = firstModelError.ErrorMessage });
             }
 
-            TransactionSubmissionResponse transactionSubmissionResponse = null;
+            string applicationUrl = this.httpContextHelpers.GetApplicationUrl(HttpContext);
 
-            try
+            TransactionSubmissionResponse transactionSubmissionResponse = this.nodeService.AddTransaction(transaction);
+
+            this.nodeService.SendTransactionToPeers(transaction, applicationUrl);
+
+            if (transactionSubmissionResponse.StatusCode != null)
             {
-                transactionSubmissionResponse = this.nodeService.AddTransaction(transaction);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { ErrorMsg = ex.Message });
-            }
-
-            return Ok(transactionSubmissionResponse);
-        }
-
-        // POST transactions
-        [HttpPost]
-        public IActionResult AddTransactionFromAnotherNode([FromBody]Transaction transaction)
-        {
-            if (!ModelState.IsValid)
-            {
-                ModelError firstModelError = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .FirstOrDefault();
-
-                return BadRequest(new { ErrorMsg = firstModelError.ErrorMessage });
+                return StatusCode(
+                    (int)transactionSubmissionResponse.StatusCode, 
+                    new { ErrorMessage = transactionSubmissionResponse.Message });
             }
 
-            bool transactionExistsInPendingTransactions = 
-                this.dataService.PendingTransactions.Any(t => t.TransactionHash == transaction.TransactionHash);
-
-            if (transactionExistsInPendingTransactions)
-            {
-                return StatusCode(StatusCodes.Status409Conflict);
-            }
-
-            this.dataService.PendingTransactions.Add(transaction);
-
-            return Ok(new { Message = $"Added transaction (Hash: {transaction.TransactionHash}) to pending transactions" });
+            return Ok(new { TransactionHash = transactionSubmissionResponse.TransactionHash });
         }
     }
 }
