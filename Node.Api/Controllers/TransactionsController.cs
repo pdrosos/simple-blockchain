@@ -91,9 +91,8 @@
 
             string applicationUrl = this.httpContextHelpers.GetApplicationUrl(HttpContext);
 
-            TransactionSubmissionResponse transactionSubmissionResponse = this.nodeService.AddTransaction(transaction);
-
-            this.nodeService.SendTransactionToPeers(transaction, applicationUrl);
+            TransactionSubmissionResponse transactionSubmissionResponse = 
+                this.nodeService.ProcessTransaction(transaction, applicationUrl);
 
             if (transactionSubmissionResponse.StatusCode != null)
             {

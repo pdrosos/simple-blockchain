@@ -50,7 +50,7 @@ namespace Node.Api.Services
             this.httpContextHelpers = httpContextHelpers;
         }
 
-        public TransactionSubmissionResponse AddTransaction(Transaction transaction)
+        public TransactionSubmissionResponse ProcessTransaction(Transaction transaction, string currentPeerUrl)
         {
             bool signatureVerificationResult = this.VerifySignature(transaction);
 
@@ -66,7 +66,10 @@ namespace Node.Api.Services
 
             string transactionHash = this.CalculateTransactionHash(transaction);
 
-            var collisionDetected = this.IsCollisionDetected(transactionHash, this.dataService.PendingTransactions);
+            var collisionDetected = this.IsCollisionDetected(
+                transactionHash, 
+                this.dataService.PendingTransactions = new List<Transaction>(), 
+                this.dataService.Blocks = new List<Block>());
 
             if (collisionDetected)
             {
@@ -80,16 +83,26 @@ namespace Node.Api.Services
 
             this.dataService.PendingTransactions.Add(transaction);
 
+            this.SendTransactionToPeers(transaction, currentPeerUrl);
+
             return transactionSubmissionResponse;
         }
 
-        public void SendTransactionToPeers(Transaction transaction, string currentPeerUrl)
+        private void SendTransactionToPeers(Transaction transaction, string currentPeerUrl)
         {
             List<string> peers = this.dataService.NodeInfo.PeersListUrls;
 
-            List<string> notYetSentToPeers = peers.Where(p => !transaction.AlreadySentToPeers.Any(url => url == p)).ToList();
+            if (peers == null)
+            {
+                peers = new List<string>();
+            }
 
-            transaction.AlreadySentToPeers.AddRange(notYetSentToPeers);
+            if (transaction.AlreadySentToPeers == null)
+            {
+                transaction.AlreadySentToPeers = new List<string>();
+            }
+
+            List<string> notYetSentToPeers = peers.Where(p => !transaction.AlreadySentToPeers.Any(url => url == p)).ToList();
 
             int sentToPeersCount = transaction.AlreadySentToPeers.Count;
 
@@ -107,6 +120,10 @@ namespace Node.Api.Services
 
             if (notYetSentToPeers != null && notYetSentToPeers.Count > 0)
             {
+                transaction.AlreadySentToPeers.AddRange(notYetSentToPeers);
+
+                transaction.AlreadySentToPeers.Add(currentPeerUrl);
+
                 var tasks = new List<Task>();
 
                 notYetSentToPeers.ForEach(peerUrl =>
@@ -118,9 +135,10 @@ namespace Node.Api.Services
             }
         }
 
-        public bool IsCollisionDetected(string transactionHash, List<Transaction> pendingTransactions)
+        private bool IsCollisionDetected(string transactionHash, List<Transaction> pendingTransactions, List<Block> blocks)
         {
-            bool collisionDetected = pendingTransactions.Any(t => t.TransactionHash == transactionHash);
+            bool collisionDetected = pendingTransactions.Any(t => t.TransactionHash == transactionHash) ||
+                blocks.Any(b => b.Transactions.Any(t => t.TransactionHash == transactionHash));
 
             return collisionDetected;
         }
