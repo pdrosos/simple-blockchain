@@ -1,16 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
-using AutoMapper;
-
 using Node.Api.Configuration;
 using Node.Api.Helpers;
 using Node.Api.Models;
 using Node.Api.Services;
 using Node.Api.Services.Abstractions;
+using System.Collections.Generic;
 
 namespace Node.Api
 {

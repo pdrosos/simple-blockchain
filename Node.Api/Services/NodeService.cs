@@ -10,6 +10,8 @@ using Org.BouncyCastle.Math;
 using Node.Api.Helpers;
 using Node.Api.Models;
 using Node.Api.Services.Abstractions;
+using Microsoft.Extensions.Logging;
+using Node.Api.Configuration;
 
 namespace Node.Api.Services
 {
@@ -29,13 +31,16 @@ namespace Node.Api.Services
 
         private readonly IHttpContextHelpers httpContextHelpers;
 
+        private readonly ILogger logger;
+
         public NodeService(
             IMapper mapper, 
             IDataService dataService, 
             ICryptographyHelpers cryptographyHelpers,
             IDateTimeHelpers dateTimeHelpers,
             IHttpHelpers httpHelpers,
-            IHttpContextHelpers httpContextHelpers)
+            IHttpContextHelpers httpContextHelpers,
+            ILogger<NodeService> logger)
         {
             this.mapper = mapper;
 
@@ -48,6 +53,8 @@ namespace Node.Api.Services
             this.httpHelpers = httpHelpers;
 
             this.httpContextHelpers = httpContextHelpers;
+
+            this.logger = logger;
         }
 
         public TransactionSubmissionResponse ProcessTransaction(Transaction transaction, string currentPeerUrl)
@@ -81,7 +88,13 @@ namespace Node.Api.Services
 
             transaction.TransactionHash = transactionHash;
 
+            transactionSubmissionResponse.TransactionHash = transactionHash;
+
             this.dataService.PendingTransactions.Add(transaction);
+
+            this.logger.LogInformation(
+                LoggingEvents.InsertItem,
+                "Node: {currentPeerUrl} added transaction with hash: {transactionHash} to pending transactions", currentPeerUrl, transactionHash);
 
             this.SendTransactionToPeers(transaction, currentPeerUrl);
 
@@ -128,7 +141,16 @@ namespace Node.Api.Services
 
                 notYetSentToPeers.ForEach(peerUrl =>
                 {
-                    tasks.Add(Task.Run(() => this.httpHelpers.DoApiPost(peerUrl, TransactionApiPath, transaction)));
+                    tasks.Add
+                    (
+                        Task.Run(() =>
+                        {
+                            this.httpHelpers.DoApiPost(peerUrl, TransactionApiPath, transaction);
+                            this.logger.LogInformation(
+                                LoggingEvents.InsertItem, 
+                                "Node:{currentPeerUrl} has sent transaction to: {peerUrl}", currentPeerUrl, peerUrl);
+                        })
+                    );
                 });
 
                 Task.WaitAll(tasks.ToArray());
