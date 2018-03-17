@@ -71,7 +71,7 @@
         [HttpGet("pending")]
         public IActionResult GetPendingTransactions()
         {
-            IEnumerable<Transaction> pendingTransactions = this.mockedDataService.PendingTransactions;
+            IEnumerable<Transaction> pendingTransactions = this.dataService.PendingTransactions;
 
             return Ok(pendingTransactions);
         }

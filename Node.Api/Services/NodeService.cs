@@ -18,7 +18,7 @@ namespace Node.Api.Services
 {
     public class NodeService : INodeService
     {
-        const string TransactionApiPath = "transactions";
+        const string TransactionApiPath = @"transactions/send";
 
         private readonly IMapper mapper;
 
@@ -142,10 +142,21 @@ namespace Node.Api.Services
                 {
                     tasks.Add
                     (
-                        Task.Run(() =>
+                        Task.Run(async() =>
                         {
-                            this.httpHelpers.DoApiPost(peerUrl, TransactionApiPath, transaction);
                             this.logger.LogInformation($"Node: {currentPeerUrl} has sent transaction to: {peerUrl}");
+                            var response = await this.httpHelpers.DoApiPost(peerUrl, TransactionApiPath, transaction);
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                this.logger.LogInformation($"Node: {peerUrl} successfully received the transaction");
+                            }
+                            else
+                            {
+                                this.logger.LogInformation(
+                                    $"Node: {peerUrl} could not receive transaction (Status Code: {response.StatusCode}, Reason: {response.ReasonPhrase})");
+                            }
+                            
                         })
                     );
                 });

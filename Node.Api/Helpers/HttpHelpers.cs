@@ -8,7 +8,7 @@ namespace Node.Api.Helpers
 {
     public class HttpHelpers : IHttpHelpers
     {
-        public async Task DoApiPost<TRequest>(string domainUrl, string path, TRequest requestObject)
+        public async Task<HttpResponseMessage> DoApiPost<TRequest>(string domainUrl, string path, TRequest requestObject)
         {
             var httpClient = new HttpClient();
 
@@ -16,11 +16,11 @@ namespace Node.Api.Helpers
 
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            string requestUrl = $"{domainUrl}/path";
+            string requestUrl = $"{domainUrl}/{path}";
 
-            var response = httpClient.PostAsync(requestUrl, new JsonContent(requestObject));
+            HttpResponseMessage response = await httpClient.PostAsync(requestUrl, new JsonContent(requestObject));
 
-            await response;
+            return response;
         }
     }
 }

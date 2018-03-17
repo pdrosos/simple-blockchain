@@ -19,11 +19,11 @@ namespace Node.Api
 
             if (string.IsNullOrWhiteSpace(port))
             {
-                fileName = $"Logs/Log-Node.txt";
+                fileName = $"Log/Log-Node.txt";
             }
             else
             {
-                fileName = $"Logs/Log-Node-{port}.txt";
+                fileName = $"Log/Log-Node-{port}.txt";
             }
 
             Log.Logger = new LoggerConfiguration()
