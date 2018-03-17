@@ -6,12 +6,13 @@ using AutoMapper;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Org.BouncyCastle.Math;
+using Serilog;
 
 using Node.Api.Helpers;
 using Node.Api.Models;
 using Node.Api.Services.Abstractions;
-using Microsoft.Extensions.Logging;
 using Node.Api.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Node.Api.Services
 {
@@ -31,7 +32,7 @@ namespace Node.Api.Services
 
         private readonly IHttpContextHelpers httpContextHelpers;
 
-        private readonly ILogger logger;
+        private readonly ILogger<NodeService> logger;
 
         public NodeService(
             IMapper mapper, 
@@ -92,9 +93,7 @@ namespace Node.Api.Services
 
             this.dataService.PendingTransactions.Add(transaction);
 
-            this.logger.LogInformation(
-                LoggingEvents.InsertItem,
-                "Node: {currentPeerUrl} added transaction with hash: {transactionHash} to pending transactions", currentPeerUrl, transactionHash);
+            this.logger.LogInformation($"Node: {currentPeerUrl} added transaction with hash: {transactionHash} to pending transactions");
 
             this.SendTransactionToPeers(transaction, currentPeerUrl);
 
@@ -146,9 +145,7 @@ namespace Node.Api.Services
                         Task.Run(() =>
                         {
                             this.httpHelpers.DoApiPost(peerUrl, TransactionApiPath, transaction);
-                            this.logger.LogInformation(
-                                LoggingEvents.InsertItem, 
-                                "Node:{currentPeerUrl} has sent transaction to: {peerUrl}", currentPeerUrl, peerUrl);
+                            this.logger.LogInformation($"Node: {currentPeerUrl} has sent transaction to: {peerUrl}");
                         })
                     );
                 });
