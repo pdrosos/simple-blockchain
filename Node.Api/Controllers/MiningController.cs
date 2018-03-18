@@ -13,15 +13,11 @@
 
         private readonly INodeService nodeService;
 
-        private readonly ICryptographyHelpers cryptographyHelpers;
-
-        public MiningController(IDataService dataService, INodeService nodeService, ICryptographyHelpers cryptographyHelpers)
+        public MiningController(IDataService dataService, INodeService nodeService)
         {
             this.dataService = dataService;
 
             this.nodeService = nodeService;
-
-            this.cryptographyHelpers = cryptographyHelpers;
         }
 
         [HttpGet("get-mining-job/{minerAddress}")]

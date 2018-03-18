@@ -116,7 +116,7 @@
                 ulong nonce = 0;
                 string timestamp = dateTimeHelpers.ConvertDateTimeToUniversalTimeISO8601String(DateTime.Now);
 
-                string difficulty = new String('0', miningJob.Difficulty) + new string('9', 64 - miningJob.Difficulty);
+                string requiredLeadingZeroes = new String('0', miningJob.Difficulty);
 
                 string blockData = miningJob.BlockIndex.ToString() + 
                                    miningJob.TransactionsIncluded.ToString() + 
@@ -129,7 +129,7 @@
                     data = blockData + timestamp + nonce.ToString();
                     blockHash = ByteArrayToHexString(Sha256(Encoding.UTF8.GetBytes(data)));
 
-                    if (String.CompareOrdinal(blockHash, difficulty) < 0)
+                    if (blockHash.StartsWith(requiredLeadingZeroes))
                     {
                         Console.WriteLine("Block Mined");
                         Console.WriteLine($"Block Hash: {blockHash}\n");

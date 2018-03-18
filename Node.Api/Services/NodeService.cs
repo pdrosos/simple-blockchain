@@ -147,9 +147,9 @@ namespace Node.Api.Services
             var data = blockData + minedBlock.DateCreated + minedBlock.Nonce.ToString();
             var dataBytes = Encoding.UTF8.GetBytes(data);
             var blockHash = this.cryptographyHelpers.ByteArrayToHexString(this.cryptographyHelpers.Sha256(dataBytes));
-            var difficulty = new String('0', blockCandidate.Difficulty) + new String('9', 64 - blockCandidate.Difficulty);
+            string requiredLeadingZeroes = new String('0', blockCandidate.Difficulty);
 
-            if (String.CompareOrdinal(blockHash, difficulty) < 0) // nonce ok
+            if (blockHash.StartsWith(requiredLeadingZeroes)) // nonce ok
             {
                 // if next block - add to blockchain and notify peers
                 if (blockCandidate.Index == (ulong)this.dataService.Blocks.Count + 1)
