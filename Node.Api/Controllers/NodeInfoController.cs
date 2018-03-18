@@ -8,8 +8,6 @@
     [Route("info")]
     public class NodeInfoController : Controller
     {
-        private readonly IMockedDataService mockedDataService;
-
         private readonly INodeService nodeService;
 
         private readonly IDataService dataService;
@@ -17,14 +15,11 @@
         private readonly IHttpContextHelpers httpContextHelpers;
 
         public NodeInfoController(
-            IDataService dataService, 
-            IMockedDataService mockedDataService, 
+            IDataService dataService,
             INodeService nodeService,
             IHttpContextHelpers httpContextHelpers)
         {
             this.dataService = dataService;
-
-            this.mockedDataService = mockedDataService;
 
             this.nodeService = nodeService;
 

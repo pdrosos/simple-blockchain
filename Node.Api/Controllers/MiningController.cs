@@ -1,7 +1,7 @@
 ﻿namespace Node.Api.Controllers
 {
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Extensions.Logging;
+    using Node.Api.Helpers;
     using Node.Api.Models;
     using Node.Api.Services.Abstractions;
     using System;
@@ -9,32 +9,19 @@
     [Route("[controller]")]
     public class MiningController : Controller
     {
-        private readonly IMockedDataService mockedDataService;
-
         private readonly IDataService dataService;
 
         private readonly INodeService nodeService;
 
-        private readonly IMiningService miningService;
+        private readonly ICryptographyHelpers cryptographyHelpers;
 
-        private readonly ILogger<MiningController> logger;
-
-        public MiningController(
-            IDataService dataService, 
-            IMockedDataService mockedDataService,
-            INodeService nodeService,
-            IMiningService miningService, 
-            ILogger<MiningController> logger)
+        public MiningController(IDataService dataService, INodeService nodeService, ICryptographyHelpers cryptographyHelpers)
         {
             this.dataService = dataService;
 
-            this.mockedDataService = mockedDataService;
-
             this.nodeService = nodeService;
 
-            this.miningService = miningService;
-
-            this.logger = logger;
+            this.cryptographyHelpers = cryptographyHelpers;
         }
 
         [HttpGet("get-mining-job/{minerAddress}")]
@@ -75,12 +62,12 @@
                 return NotFound();
             }
 
-            var reward = 5000350;
+            this.nodeService.VerifyMinedJob(minedBlock);
 
             var response = new
             {
                 Status = "accepted",
-                Message = string.Format("Block accepted, reward paid: {0} microcoins", reward)
+                Message = string.Format("Block accepted, reward paid.")
             };
 
             return Ok(response);

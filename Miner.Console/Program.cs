@@ -138,7 +138,7 @@
                         {
                             DateCreated = timestamp,
                             Nonce = nonce,
-                            BlockDataHash = blockHash
+                            BlockDataHash = miningJob.BlockDataHash
                         };
 
                         int retries = 0;
@@ -159,7 +159,7 @@
                                 log.Information($"Sent request to: {nodeUrl} with mined block (hash: {blockHash})!");
 
                                 Console.WriteLine(statusDescription);
-                                log.Information($"Received response from {nodeUrl} - statuc code: {statusCode}, description: {statusDescription}");
+                                log.Information($"Received response from {nodeUrl} - status code: {statusCode}, description: {statusDescription}");
                             }
                             catch (WebException e)
                             {

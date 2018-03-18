@@ -10,22 +10,18 @@
     [Route("[controller]")]
     public class BlocksController : Controller
     {
-        private readonly IMockedDataService mockedDataService;
+        private readonly IDataService dataService;
 
-        private readonly IBlockService blockService;
-
-        public BlocksController(IMockedDataService mockedDataService, IBlockService blockService)
+        public BlocksController(IDataService dataService)
         {
-            this.mockedDataService = mockedDataService;
-
-            this.blockService = blockService;
+            this.dataService = dataService;
         }
 
         // GET blocks
         [HttpGet]
         public IActionResult Get()
         {
-            List<Block> blocks = this.mockedDataService.Blocks;
+            List<Block> blocks = this.dataService.Blocks;
 
             return Ok(blocks);
         }
@@ -34,7 +30,7 @@
         [HttpGet("{index}")]
         public IActionResult GetByIndex(long index)
         {
-            Block block = this.mockedDataService.Blocks.FirstOrDefault(b => b.Index == index);
+            Block block = this.dataService.Blocks.FirstOrDefault(b => b.Index == index);
 
             if (block == null)
             {

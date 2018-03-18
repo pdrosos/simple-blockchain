@@ -19,7 +19,7 @@ namespace Node.Api.Models
         [Required]
         public int Difficulty { get; set; }
 
-        [JsonProperty(Order = 4)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore, Order = 4)]
         public string PrevBlockHash { get; set; }
 
         [JsonProperty(Order = 5)]
@@ -29,7 +29,7 @@ namespace Node.Api.Models
         public string BlockDataHash { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore, Order = 7)]
-        public int Nonce { get; set; }
+        public ulong Nonce { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore, Order = 8)]
         public DateTime DateCreated { get; set; }

@@ -8,6 +8,8 @@ namespace Node.Api.Services.Abstractions
 
         MiningJob GetMiningJob(string minerAddress);
 
+        void VerifyMinedJob(MinedBlockPostModel minedBlock);
+
         void GenerateGenesisBlock();
     }
 }

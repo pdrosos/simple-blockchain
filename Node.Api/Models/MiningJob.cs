@@ -2,9 +2,11 @@
 {
     public class MiningJob
     {
-        public int Index { get; set; }
+        public long Index { get; set; }
 
         public int TransactionsIncluded { get; set; }
+
+        public int Difficulty { get; set; }
 
         public long ExpectedReward { get; set; }
 

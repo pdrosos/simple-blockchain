@@ -175,18 +175,6 @@ namespace Node.Api.Helpers
             return string.Concat(bytes.Select(b => b.ToString("x2")));
         }
 
-        private string ConvertByteArrayToHexStringV2(byte[] byteArray)
-        {
-            StringBuilder hex = new StringBuilder(byteArray.Length * 2);
-
-            foreach (byte b in byteArray)
-            {
-                hex.AppendFormat("{0:x2}", b);
-            }
-
-            return hex.ToString();
-        }
-
         public byte[] ConvertStringToByteArray(string data)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(data);
@@ -201,6 +189,27 @@ namespace Node.Api.Helpers
                 .ToArray();
 
             return bytes;
+        }
+
+        public byte[] Sha256(byte[] array)
+        {
+            SHA256Managed hashstring = new SHA256Managed();
+
+            return hashstring.ComputeHash(array);
+        }
+
+        public string ByteArrayToHexString(byte[] bytes)
+        {
+            StringBuilder result = new StringBuilder(bytes.Length * 2);
+            string hexAlphabet = "0123456789ABCDEF";
+
+            foreach (byte b in bytes)
+            {
+                result.Append(hexAlphabet[(int)(b >> 4)]);
+                result.Append(hexAlphabet[(int)(b & 0x0F)]);
+            }
+
+            return result.ToString().ToLower();
         }
     }
 }

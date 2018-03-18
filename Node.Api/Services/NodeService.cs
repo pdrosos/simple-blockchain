@@ -13,6 +13,7 @@ using Infrastructure.Library.Helpers;
 using Node.Api.Helpers;
 using Node.Api.Models;
 using Node.Api.Services.Abstractions;
+using System.Text;
 
 namespace Node.Api.Services
 {
@@ -23,8 +24,6 @@ namespace Node.Api.Services
         private readonly IMapper mapper;
 
         private readonly IDataService dataService;
-
-        private readonly IMockedDataService mockedDataService;
 
         private readonly ICryptographyHelpers cryptographyHelpers;
 
@@ -45,7 +44,6 @@ namespace Node.Api.Services
         public NodeService(
             IMapper mapper, 
             IDataService dataService,
-            IMockedDataService mockedDataService,
             ICryptographyHelpers cryptographyHelpers,
             IDateTimeHelpers dateTimeHelpers,
             IHttpHelpers httpHelpers,
@@ -55,8 +53,6 @@ namespace Node.Api.Services
             this.mapper = mapper;
 
             this.dataService = dataService;
-
-            this.mockedDataService = mockedDataService;
 
             this.cryptographyHelpers = cryptographyHelpers;
 
@@ -127,7 +123,54 @@ namespace Node.Api.Services
                 throw new Exception("Adding new mining job to the list was not successful");
             }
 
-            return this.mockedDataService.MiningJob;
+            var miningJob = new MiningJob()
+            {
+                Index = blockCandidate.Index,
+                TransactionsIncluded = blockCandidate.Transactions.Count,
+                Difficulty = this.dataService.NodeInfo.Difficulty,
+                ExpectedReward = this.dataService.MinerReward + blockCandidate.Transactions.Sum(t => t.Fee),
+                RewardAddress = minerAddress,
+                BlockDataHash = blockCandidate.BlockDataHash
+            };
+
+            return miningJob;
+        }
+
+        public void VerifyMinedJob(MinedBlockPostModel minedBlock)
+        {
+            var blockCandidate = this.dataService.MiningJobs[minedBlock.BlockDataHash];
+
+            string blockData = blockCandidate.Index.ToString() +
+                               blockCandidate.Transactions.Count.ToString() +
+                               blockCandidate.BlockDataHash;
+
+            var data = blockData + minedBlock.DateCreated + minedBlock.Nonce.ToString();
+            var dataBytes = Encoding.UTF8.GetBytes(data);
+            var blockHash = this.cryptographyHelpers.ByteArrayToHexString(this.cryptographyHelpers.Sha256(dataBytes));
+            var difficulty = new String('0', blockCandidate.Difficulty) + new String('9', 64 - blockCandidate.Difficulty);
+
+            if (String.CompareOrdinal(blockHash, difficulty) < 0) // nonce ok
+            {
+                // if next block - add to blockchain and notify peers
+                if (blockCandidate.Index == this.dataService.Blocks.Count + 1)
+                {
+                    blockCandidate.Nonce = minedBlock.Nonce;
+                    blockCandidate.BlockHash = blockHash;
+                    blockCandidate.DateCreated = DateTime.Parse(minedBlock.DateCreated);
+
+                    this.AddBlockToBlockchain(blockCandidate);
+
+                    this.logger.LogInformation($"Block {blockCandidate.Index} with hash {blockHash} added to blockchain");
+                }
+                else
+                {
+                    this.logger.LogInformation($"Block candidate {blockCandidate.Index} with hash {blockHash} already exists in blockckain");
+                }
+            }
+            else
+            {
+                this.logger.LogInformation($"Block candidate {blockCandidate.Index} with hash {blockHash} does not have correct nonce {minedBlock.Nonce}");
+            }
         }
 
         private Block CreateBlockCandidate(string minerAddress)
@@ -203,7 +246,7 @@ namespace Node.Api.Services
                 Value = FaucetStartVolume,
                 TransferSuccessful = true,
                 DateCreated = DateTime.UtcNow,
-                MinedInBlockIndex = 0,
+                MinedInBlockIndex = 1,
                 Fee = 0,
                 TransactionHash = ZeroHash
             });
@@ -211,7 +254,7 @@ namespace Node.Api.Services
             this.AddBlockToBlockchain(new Block
             {
                 Difficulty = this.dataService.NodeInfo.Difficulty,
-                Index = 0,
+                Index = 1,
                 MinedBy = "Michael Jordan",
                 PrevBlockHash = ZeroHash,
                 BlockDataHash = ZeroHash,

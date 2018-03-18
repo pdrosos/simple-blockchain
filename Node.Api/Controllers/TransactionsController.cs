@@ -14,26 +14,16 @@
     {
         private readonly IDataService dataService;
 
-        private readonly IMockedDataService mockedDataService;
-
         private readonly INodeService nodeService;
-
-        private readonly ITransactionService transactionService;
 
         private readonly IHttpContextHelpers httpContextHelpers;
 
         public TransactionsController(
             IDataService dataService, 
-            IMockedDataService mockedDataService, 
-            ITransactionService transactionService, 
-            INodeService nodeService,
+            INodeService nodeService, 
             IHttpContextHelpers httpContextHelpers)
         {
             this.dataService = dataService;
-
-            this.mockedDataService = mockedDataService;
-
-            this.transactionService = transactionService;
 
             this.nodeService = nodeService;
 
@@ -44,7 +34,7 @@
         [HttpGet("{transactionHash}")]
         public IActionResult GetTransactionInfo(string transactionHash)
         {
-            var transaction = this.mockedDataService.Blocks
+            var transaction = this.dataService.Blocks
                 .Select(b => b.Transactions.FirstOrDefault(tr => tr.TransactionHash == transactionHash))
                 .FirstOrDefault();
 
@@ -60,7 +50,7 @@
         [HttpGet("confirmed")]
         public IActionResult GetConfirmedTransactions()
         {
-            IEnumerable<Transaction> transactions = this.mockedDataService.Blocks
+            IEnumerable<Transaction> transactions = this.dataService.Blocks
                 .SelectMany(b => b.Transactions)
                 .Where(t => t.TransferSuccessful == true);
 

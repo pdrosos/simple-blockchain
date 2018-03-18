@@ -47,23 +47,13 @@ namespace Node.Api
 
             services.AddSingleton<IDataService, DataService>();
 
-            services.AddSingleton<IMockedDataService, MockedDataService>();
-
             services.AddSingleton<ICryptographyHelpers, CryptographyHelpers>();
 
             services.AddSingleton<IDateTimeHelpers, DateTimeHelpers>();
 
             services.AddScoped<INodeService, NodeService>();
 
-            services.AddScoped<IBlockService, BlockService>();
-
-            services.AddScoped<ITransactionService, TransactionService>();
-
             services.AddScoped<IAddressService, AddressService>();
-
-            services.AddScoped<IPeerService, PeerService>();
-
-            services.AddScoped<IMiningService, MiningService>();
 
             services.AddScoped<IHttpContextHelpers, HttpContextHelpers>();
 

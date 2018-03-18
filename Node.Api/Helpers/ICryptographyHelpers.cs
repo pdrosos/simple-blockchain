@@ -34,5 +34,9 @@ namespace Node.Api.Helpers
         BigInteger[] ConvertHexSignatureToBigInteger(string[] signature);
 
         byte[] ConvertStringToByteArray(string data);
+
+        byte[] Sha256(byte[] array);
+
+        string ByteArrayToHexString(byte[] bytes);
     }
 }

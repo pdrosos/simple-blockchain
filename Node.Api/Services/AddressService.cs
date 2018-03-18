@@ -8,25 +8,21 @@
 
     public class AddressService : IAddressService
     {
-        private readonly IMockedDataService mockedDataService;
-
         private readonly IDataService dataService;
 
-        public AddressService(IMockedDataService mockedDataService, IDataService dataService)
+        public AddressService(IDataService dataService)
         {
-            this.mockedDataService = mockedDataService;
-
             this.dataService = dataService;
         }
 
         public AddressTransactions GetTransactionsForAddress(string address)
         {
-            List<Transaction> transactionsForAddressFromBlocks = this.mockedDataService.Blocks
+            List<Transaction> transactionsForAddressFromBlocks = this.dataService.Blocks
                 .SelectMany(b => b.Transactions)
                 .Where(t => t.From == address || t.To == address)
                 .ToList();
 
-            List<Transaction> transactionsForAddressFromPendingTransactions = this.mockedDataService.PendingTransactions
+            List<Transaction> transactionsForAddressFromPendingTransactions = this.dataService.PendingTransactions
                 .Where(t => t.From == address || t.To == address)
                 .ToList();
 
@@ -56,15 +52,15 @@
 
             int saveConfirmCount = 6;
 
-            for (int i = 0; i < this.mockedDataService.Blocks.Count; i++)
+            for (int i = 0; i < this.dataService.Blocks.Count; i++)
             {
-                foreach (var transaction in this.mockedDataService.Blocks[i].Transactions)
+                foreach (var transaction in this.dataService.Blocks[i].Transactions)
                 {
                     if (transaction.From == address || transaction.To == address)
                     {
                         latestAddressBlockIndex = i;
 
-                        if (this.mockedDataService.Blocks.Count - i >= saveConfirmCount)
+                        if (this.dataService.Blocks.Count - i >= saveConfirmCount)
                         {
                             confirmedBalance = this.UpdateBalance(transaction, address, confirmedBalance);
                         }
@@ -76,9 +72,9 @@
                 }
             }
 
-            for (int i = 0; i < this.mockedDataService.PendingTransactions.Count; i++)
+            for (int i = 0; i < this.dataService.PendingTransactions.Count; i++)
             {
-                Transaction currentPendingTransaction = this.mockedDataService.PendingTransactions[i];
+                Transaction currentPendingTransaction = this.dataService.PendingTransactions[i];
 
                 if (currentPendingTransaction.From == address || currentPendingTransaction.To == address)
                 {
@@ -90,7 +86,7 @@
 
             if (latestAddressBlockIndex >= 0)
             {
-                confirmations = this.mockedDataService.Blocks.Count - latestAddressBlockIndex;
+                confirmations = this.dataService.Blocks.Count - latestAddressBlockIndex;
             }
             else
             {

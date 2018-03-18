@@ -9,7 +9,7 @@ namespace Node.Api.Models
         public string BlockDataHash { get; set; }
 
         [Required]
-        public DateTime DateCreated { get; set; }
+        public string DateCreated { get; set; }
 
         public ulong Nonce { get; set; }
     }

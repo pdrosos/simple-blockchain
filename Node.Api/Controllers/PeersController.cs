@@ -1,42 +1,30 @@
 ﻿namespace Node.Api.Controllers
 {
     using System.Collections.Generic;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
+    using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
 
+    using Infrastructure.Library.Helpers;
     using Node.Api.Helpers;
     using Node.Api.Models;
     using Node.Api.Services.Abstractions;
-    using Infrastructure.Library.Helpers;
-    using System.Threading.Tasks;
 
     [Route("[controller]")]
     public class PeersController : Controller
     {
         private readonly IDataService dataService;
 
-        private readonly IMockedDataService mockedDataService;
-
-        private readonly IPeerService peerService;
-
         private readonly IHttpContextHelpers httpContextHelpers;
 
         private readonly IHttpHelpers httpHelpers;
 
         public PeersController(
-            IDataService dataService, 
-            IMockedDataService mockedDataService, 
-            IPeerService peerService,
+            IDataService dataService,
             IHttpContextHelpers httpContextHelpers,
             IHttpHelpers httpHelpers)
         {
             this.dataService = dataService;
-
-            this.mockedDataService = mockedDataService;
-
-            this.peerService = peerService;
 
             this.httpContextHelpers = httpContextHelpers;
 
