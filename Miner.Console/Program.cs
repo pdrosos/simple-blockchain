@@ -1,15 +1,16 @@
 ﻿namespace Miner.Console
 {
+    using Infrastructure.Library.Helpers;
+    using Microsoft.Extensions.DependencyInjection;
+    using Miner.Console.Models;
+    using Serilog;
     using System;
     using System.Diagnostics;
-    using System.IO;
     using System.Net;
+    using System.Net.Http;
     using System.Security.Cryptography;
     using System.Text;
-
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
-    using Serilog;
+    using System.Threading.Tasks;
 
     class Program
     {
@@ -18,6 +19,18 @@
            
         static void Main(string[] args)
         {
+            var services = new ServiceCollection();
+
+            services.AddSingleton<IDateTimeHelpers, DateTimeHelpers>();
+
+            services.AddScoped<IHttpHelpers, HttpHelpers>();
+
+            var serviceProvider = services.BuildServiceProvider();
+
+            var httpHelpers = serviceProvider.GetService<IHttpHelpers>();
+
+            var dateTimeHelpers = serviceProvider.GetService<IDateTimeHelpers>();
+
             if (args.Length < 2)
             {
                 Console.WriteLine("Usage: \t dotnet Miner.Console.dll <NODE_URL> <Miner_Address>");
@@ -35,21 +48,11 @@
 
             log.Information("Hello, Serilog!");
 
-            Mine();
+            MineAsync(httpHelpers, dateTimeHelpers).Wait();
         }
 
-        public static void Mine()
+        public static async Task MineAsync(IHttpHelpers httpHelpers, IDateTimeHelpers dateTimeHelpers)
         {
-            string responseBody = @"{
-                'blockIndex': 1,
-                'transactionsIncluded': 12,
-                'expectedReward': 6225,
-                'rewardAddress': '1212121',
-                'blockDataHash': '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
-                'difficulty': 5
-            }";
-
-            WebResponse response = null;
             HttpStatusCode statusCode = HttpStatusCode.RequestTimeout;
 
             Stopwatch sw = new Stopwatch();
@@ -59,20 +62,26 @@
             {
                 sw.Start();
 
+                MiningJob miningJob = null;
+
                 do
                 {
                     try
                     {
-                        statusCode = HttpStatusCode.RequestTimeout;
+                        string path = "mining/get-mining-job/{minerAddress}";
 
-                        // Create a request to Node   
-                        WebRequest request = WebRequest.Create(nodeUrl + "/mining/get-block/" + minerAddress);
-                        request.Method = "GET";
-                        request.Timeout = 3000;
-                        request.ContentType = "application/json; charset=utf-8";
+                        var parameter = new Parameter()
+                        {
+                            Name = "minerAddress",
+                            Value = minerAddress,
+                            Type = ParameterType.UrlSegment
+                        };
 
-                        response = request.GetResponse();
-                        statusCode = ((HttpWebResponse)response).StatusCode;
+                        Response<MiningJob> response = await httpHelpers.DoApiGet<MiningJob>(nodeUrl, path, parameter);
+
+                        miningJob = response.Data;
+
+                        statusCode = response.StatusCode;
                     }
                     catch (WebException e)
                     {
@@ -87,16 +96,6 @@
                     }
                 } while (statusCode != HttpStatusCode.OK);
 
-                Stream dataStream = response.GetResponseStream();
-                StreamReader reader = new StreamReader(dataStream);
-                responseBody = reader.ReadToEnd();
-
-                reader.Close();
-                dataStream.Close();
-                response.Close();
-
-                MiningJob miningJob = JsonConvert.DeserializeObject<MiningJob>(responseBody);
-
                 Log.Information($"Successfully received mining job (Block Data Hash: {miningJob.BlockDataHash}) from node!");
 
                 Console.WriteLine("Start New Mining Job:");
@@ -107,34 +106,34 @@
                 Console.WriteLine("Block Data Hash: {0}", miningJob.BlockDataHash);
                 Console.WriteLine("Difficulty: {0}", miningJob.Difficulty);
 
-                Boolean blockFound = false;
-                UInt64 nonce = 0;
-                String timestamp = DateTime.UtcNow.ToString("o");
-                String difficulty = new String('0', miningJob.Difficulty) +
-                    new String('9', 64 - miningJob.Difficulty);
+                bool blockFound = false;
+                ulong nonce = 0;
+                string timestamp = dateTimeHelpers.ConvertDateTimeToUniversalTimeISO8601String(DateTime.Now);
 
-                String blockData = miningJob.BlockIndex.ToString() + 
+                string difficulty = new String('0', miningJob.Difficulty) + new string('9', 64 - miningJob.Difficulty);
+
+                string blockData = miningJob.BlockIndex.ToString() + 
                                    miningJob.TransactionsIncluded.ToString() + 
                                    miningJob.BlockDataHash;
-                String data;
-                String blockHash;
+                string data;
+                string blockHash;
 
-                while (! blockFound && nonce < UInt32.MaxValue)
+                while (!blockFound && nonce < uint.MaxValue)
                 {
                     data = blockData + timestamp + nonce.ToString();
                     blockHash = ByteArrayToHexString(Sha256(Encoding.UTF8.GetBytes(data)));
+
                     if (String.CompareOrdinal(blockHash, difficulty) < 0)
                     {
                         Console.WriteLine("Block Mined");
                         Console.WriteLine($"Block Hash: {blockHash}\n");
 
-                        JObject obj = JObject.FromObject(new
+                        var minedBlock = new MinedBlockPostModel()
                         {
-                            nonce = nonce.ToString(),
-                            dateCreated = timestamp,
-                            blockHash = blockHash
-                        });
-                        byte[] blockFoundData = Encoding.UTF8.GetBytes(obj.ToString());
+                            DateCreated = timestamp,
+                            Nonce = nonce,
+                            BlockDataHash = blockHash
+                        };
 
                         int retries = 0;
                         do
@@ -143,25 +142,18 @@
                             {
                                 statusCode = HttpStatusCode.RequestTimeout;
 
-                                WebRequest request = WebRequest.Create(nodeUrl + "/mining/get-block/" + minerAddress);
-                                request.Method = "POST";
-                                request.Timeout = 3000;
-                                request.ContentType = "application/json; charset=utf-8";
+                                string path = "mining/submit-mined-block";
 
-                                dataStream = request.GetRequestStream();
-                                dataStream.Write(blockFoundData, 0, blockFoundData.Length);
-                                dataStream.Close();
+                                HttpResponseMessage response = await httpHelpers.DoApiPost(nodeUrl, path, minedBlock);
+
+                                statusCode = response.StatusCode;
+
+                                string statusDescription = response.ReasonPhrase;
 
                                 Log.Information($"Sent request to: {nodeUrl} with mined block (hash: {blockHash})!");
 
-                                response = request.GetResponse();
-                                statusCode = ((HttpWebResponse)response).StatusCode;
-                                string statusDescription = ((HttpWebResponse)response).StatusDescription;
-
                                 Console.WriteLine(statusDescription);
                                 Log.Information($"Received response from {nodeUrl} - statuc code: {statusCode}, description: {statusDescription}");
-
-                                response.Close();
                             }
                             catch (WebException e)
                             {
@@ -193,7 +185,7 @@
                     // get new timestamp on every 100000 iterations
                     if (nonce % 100000 == 0)
                     {
-                        timestamp = DateTime.UtcNow.ToString("o");
+                        timestamp = dateTimeHelpers.ConvertDateTimeToUniversalTimeISO8601String(DateTime.Now);
                     }
 
                     nonce++;

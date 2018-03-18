@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Node.Api.Models
 {
-    public class MinedBlock
+    public class MinedBlockPostModel
     {
         [Required]
         public string BlockDataHash { get; set; }
@@ -11,9 +11,6 @@ namespace Node.Api.Models
         [Required]
         public DateTime DateCreated { get; set; }
 
-        public int Nonce { get; set; }
-
-        [Required]
-        public string BlockHash { get; set; }
+        public ulong Nonce { get; set; }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
-using Node.Api.Helpers;
-using Node.Api.Models;
+using Infrastructure.Library.Helpers;
 
 namespace Node.Api.AutoMapper
 {

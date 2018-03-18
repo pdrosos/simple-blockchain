@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -23,6 +24,8 @@ namespace Node.Api.Services
 
         private readonly IDataService dataService;
 
+        private readonly IMockedDataService mockedDataService;
+
         private readonly ICryptographyHelpers cryptographyHelpers;
 
         private readonly IDateTimeHelpers dateTimeHelpers;
@@ -35,7 +38,8 @@ namespace Node.Api.Services
 
         public NodeService(
             IMapper mapper, 
-            IDataService dataService, 
+            IDataService dataService,
+            IMockedDataService mockedDataService,
             ICryptographyHelpers cryptographyHelpers,
             IDateTimeHelpers dateTimeHelpers,
             IHttpHelpers httpHelpers,
@@ -45,6 +49,8 @@ namespace Node.Api.Services
             this.mapper = mapper;
 
             this.dataService = dataService;
+
+            this.mockedDataService = mockedDataService;
 
             this.cryptographyHelpers = cryptographyHelpers;
 
@@ -97,6 +103,66 @@ namespace Node.Api.Services
             this.SendTransactionToPeers(transaction, currentPeerUrl);
 
             return transactionSubmissionResponse;
+        }
+
+        public MiningJob GetMiningJob(string minerAddress)
+        {
+            Block blockCandidate = this.CreateBlockCandidate(minerAddress);
+
+            if (blockCandidate == null)
+            {
+                throw new Exception("Cannot create block candidate");
+            }
+
+            if (this.dataService.MiningJobs.ContainsKey(minerAddress))
+            {
+                this.dataService.MiningJobs.Remove(minerAddress);
+            }
+
+            bool additionSuccessful = this.dataService.MiningJobs.TryAdd(minerAddress, blockCandidate);
+
+            if (!additionSuccessful)
+            {
+                throw new Exception("Adding new mining job to the list was not successful");
+            }
+
+            return this.mockedDataService.MiningJob;
+        }
+
+        private Block CreateBlockCandidate(string minerAddress)
+        {
+            var latestBlock = this.dataService.Blocks.OrderByDescending(b => b.Index).FirstOrDefault();
+
+            long blockCandidateIndex = (latestBlock != null ? latestBlock.Index + 1 : 1);
+
+            var coinbaseTransaction = new Transaction()
+            {
+                From = new string('0', 64),
+                To = minerAddress,
+                Value = 5000,
+                Fee = 0,
+                DateCreated = DateTime.Now,
+                SenderPubKey = new string('0', 64),
+                SenderSignature = new string[] { new string('0', 64) , new string('0', 64) },
+                MinedInBlockIndex = blockCandidateIndex,
+                TransferSuccessful = true
+            };
+
+            List<Transaction> blockCandidateTransactions = new List<Transaction>(this.dataService.PendingTransactions);
+
+            blockCandidateTransactions.Insert(0, coinbaseTransaction);
+
+            var blockCandidate = new Block()
+            {
+                Index = blockCandidateIndex,
+                Transactions = blockCandidateTransactions,
+                Difficulty = this.dataService.NodeInfo.Difficulty,
+                PrevBlockHash = latestBlock.BlockDataHash,
+                MinedBy = minerAddress,
+                BlockDataHash = ""
+            };
+
+            return blockCandidate;
         }
 
         private void SendTransactionToPeers(Transaction transaction, string currentPeerUrl)

@@ -2,8 +2,9 @@
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-using Infrastructure.Library.Extensions;
 using Newtonsoft.Json;
+
+using Infrastructure.Library.Extensions;
 
 namespace Infrastructure.Library.Helpers
 {
@@ -40,7 +41,7 @@ namespace Infrastructure.Library.Helpers
                 }
             }
 
-            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(path);
+            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(fullUrl);
 
             var response = new Response<T>()
             {

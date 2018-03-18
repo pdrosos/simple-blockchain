@@ -1,22 +1,40 @@
 ﻿namespace Node.Api.Controllers
 {
     using Microsoft.AspNetCore.Mvc;
-
+    using Microsoft.Extensions.Logging;
     using Node.Api.Models;
     using Node.Api.Services.Abstractions;
+    using System;
 
     [Route("[controller]")]
     public class MiningController : Controller
     {
         private readonly IMockedDataService mockedDataService;
 
+        private readonly IDataService dataService;
+
+        private readonly INodeService nodeService;
+
         private readonly IMiningService miningService;
 
-        public MiningController(IMockedDataService mockedDataService, IMiningService miningService)
+        private readonly ILogger<MiningController> logger;
+
+        public MiningController(
+            IDataService dataService, 
+            IMockedDataService mockedDataService,
+            INodeService nodeService,
+            IMiningService miningService, 
+            ILogger<MiningController> logger)
         {
+            this.dataService = dataService;
+
             this.mockedDataService = mockedDataService;
 
+            this.nodeService = nodeService;
+
             this.miningService = miningService;
+
+            this.logger = logger;
         }
 
         [HttpGet("get-mining-job/{minerAddress}")]
@@ -30,20 +48,29 @@
             // TODO: Generate BlockDataHash from BlockCandidate, add the BlockCandidate to the MiningJobs dictionary
             // minerAddress - To field in the coinbase transaction
 
-            MiningJob newMiningJob = this.mockedDataService.MiningJob;
+            MiningJob miningJob = null;
 
-            return Ok(newMiningJob);
+            try
+            {
+                miningJob = this.nodeService.GetMiningJob(minerAddress);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            return Ok(miningJob);
         }
 
         [HttpPost("submit-mined-block")]
-        public IActionResult SubmitBlock([FromBody]MinedBlock minedBlock)
+        public IActionResult SubmitBlock([FromBody]MinedBlockPostModel minedBlock)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
 
-            if (!this.mockedDataService.MiningJobs.ContainsKey(minedBlock.BlockDataHash))
+            if (!this.dataService.MiningJobs.ContainsKey(minedBlock.BlockDataHash))
             {
                 return NotFound();
             }
