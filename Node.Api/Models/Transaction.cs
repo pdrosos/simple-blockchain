@@ -37,7 +37,7 @@ namespace Node.Api.Models
         public string TransactionHash { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore, Order = 9)]
-        public long? MinedInBlockIndex { get; set; }
+        public ulong? MinedInBlockIndex { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore, Order = 10)]
         public bool? TransferSuccessful { get; set; }

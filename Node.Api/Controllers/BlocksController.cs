@@ -28,7 +28,7 @@
 
         // GET blocks/17
         [HttpGet("{index}")]
-        public IActionResult GetByIndex(long index)
+        public IActionResult GetByIndex(ulong index)
         {
             Block block = this.dataService.Blocks.FirstOrDefault(b => b.Index == index);
 

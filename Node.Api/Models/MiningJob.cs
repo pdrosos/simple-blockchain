@@ -2,7 +2,7 @@
 {
     public class MiningJob
     {
-        public long Index { get; set; }
+        public ulong BlockIndex { get; set; }
 
         public int TransactionsIncluded { get; set; }
 

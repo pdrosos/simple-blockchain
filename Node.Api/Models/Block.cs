@@ -9,7 +9,7 @@ namespace Node.Api.Models
     {
         [JsonProperty(Order = 1)]
         [Required]
-        public long Index { get; set; }
+        public ulong Index { get; set; }
 
         [JsonProperty(Order = 2)]
         [Required]

@@ -125,7 +125,7 @@ namespace Node.Api.Services
 
             var miningJob = new MiningJob()
             {
-                Index = blockCandidate.Index,
+                BlockIndex = blockCandidate.Index,
                 TransactionsIncluded = blockCandidate.Transactions.Count,
                 Difficulty = this.dataService.NodeInfo.Difficulty,
                 ExpectedReward = this.dataService.MinerReward + blockCandidate.Transactions.Sum(t => t.Fee),
@@ -152,7 +152,7 @@ namespace Node.Api.Services
             if (String.CompareOrdinal(blockHash, difficulty) < 0) // nonce ok
             {
                 // if next block - add to blockchain and notify peers
-                if (blockCandidate.Index == this.dataService.Blocks.Count + 1)
+                if (blockCandidate.Index == (ulong)this.dataService.Blocks.Count + 1)
                 {
                     blockCandidate.Nonce = minedBlock.Nonce;
                     blockCandidate.BlockHash = blockHash;
@@ -177,7 +177,7 @@ namespace Node.Api.Services
         {
             var latestBlock = this.dataService.Blocks.OrderByDescending(b => b.Index).FirstOrDefault();
 
-            long blockCandidateIndex = (latestBlock != null ? latestBlock.Index + 1 : 1);
+            ulong blockCandidateIndex = (latestBlock != null ? latestBlock.Index + 1 : 1);
 
             var coinbaseTransaction = new Transaction()
             {
