@@ -35,7 +35,7 @@ While (Get-Job -State "Running") { Start-Sleep -seconds 14 }
 
 Write-Host "Starting miners..."
 
-For ($port=5570; $port -le 5571; $port++) {
+For ($port=5570; $port -le 5570; $port++) {
 
   $ScriptBlockMiners = {
     param($port, $minerConsoleDir)

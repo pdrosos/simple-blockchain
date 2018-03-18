@@ -1,18 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 using AutoMapper;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Org.BouncyCastle.Math;
-using Serilog;
 
+using Infrastructure.Library.Helpers;
 using Node.Api.Helpers;
 using Node.Api.Models;
 using Node.Api.Services.Abstractions;
-using Node.Api.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace Node.Api.Services
 {

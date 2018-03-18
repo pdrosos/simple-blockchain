@@ -9,6 +9,7 @@
 
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using Serilog;
 
     class Program
     {
@@ -26,6 +27,13 @@
 
             nodeUrl = args[0];
             minerAddress = args[1];
+
+            var log = new LoggerConfiguration()
+                .WriteTo.Console()
+                .WriteTo.File($"Log/Log-Miner-{minerAddress}.txt")
+                .CreateLogger();
+
+            log.Information("Hello, Serilog!");
 
             Mine();
         }
@@ -89,6 +97,8 @@
 
                 MiningJob miningJob = JsonConvert.DeserializeObject<MiningJob>(responseBody);
 
+                Log.Information($"Successfully received mining job (Block Data Hash: {miningJob.BlockDataHash}) from node!");
+
                 Console.WriteLine("Start New Mining Job:");
                 Console.WriteLine("Block Index: {0}", miningJob.BlockIndex);
                 Console.WriteLine("Transactions Included: {0}", miningJob.TransactionsIncluded);
@@ -142,10 +152,15 @@
                                 dataStream.Write(blockFoundData, 0, blockFoundData.Length);
                                 dataStream.Close();
 
+                                Log.Information($"Sent request to: {nodeUrl} with mined block (hash: {blockHash})!");
+
                                 response = request.GetResponse();
                                 statusCode = ((HttpWebResponse)response).StatusCode;
+                                string statusDescription = ((HttpWebResponse)response).StatusDescription;
 
-                                Console.WriteLine(((HttpWebResponse)response).StatusDescription);
+                                Console.WriteLine(statusDescription);
+                                Log.Information($"Received response from {nodeUrl} - statuc code: {statusCode}, description: {statusDescription}");
+
                                 response.Close();
                             }
                             catch (WebException e)

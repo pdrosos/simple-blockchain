@@ -3,7 +3,7 @@ using System.Text;
 
 using Newtonsoft.Json;
 
-namespace Node.Api.Extensions
+namespace Infrastructure.Library.Extensions
 {
     public class JsonContent : StringContent
     {

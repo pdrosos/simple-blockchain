@@ -6,10 +6,11 @@
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
 
-    using Node.Api.Extensions;
     using Node.Api.Helpers;
     using Node.Api.Models;
     using Node.Api.Services.Abstractions;
+    using Infrastructure.Library.Helpers;
+    using System.Threading.Tasks;
 
     [Route("[controller]")]
     public class PeersController : Controller
@@ -22,11 +23,14 @@
 
         private readonly IHttpContextHelpers httpContextHelpers;
 
+        private readonly IHttpHelpers httpHelpers;
+
         public PeersController(
             IDataService dataService, 
             IMockedDataService mockedDataService, 
             IPeerService peerService,
-            IHttpContextHelpers httpContextHelpers)
+            IHttpContextHelpers httpContextHelpers,
+            IHttpHelpers httpHelpers)
         {
             this.dataService = dataService;
 
@@ -35,6 +39,8 @@
             this.peerService = peerService;
 
             this.httpContextHelpers = httpContextHelpers;
+
+            this.httpHelpers = httpHelpers;
         }
 
         [HttpGet]
@@ -46,7 +52,7 @@
         }
 
         [HttpPost]
-        public IActionResult ConnectPeer([FromBody]Peer peer)
+        public async Task<IActionResult> ConnectPeer([FromBody]Peer peer)
         {
             var currentNodePeers = this.dataService.NodeInfo.PeersListUrls;
 
@@ -59,20 +65,19 @@
 
             this.dataService.NodeInfo.PeersListUrls.Add(peer.PeerUrl);
 
-            var httpClient = new HttpClient();
-
-            httpClient.DefaultRequestHeaders.Accept.Clear();
-
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            string peerPath = "peers";
 
             var currentNodePeer = new Peer()
             {
                 PeerUrl = currentNodeUrl
             };
 
-            string requestUrl = $"{peer.PeerUrl}/peers";
+            var response = await this.httpHelpers.DoApiPost(peer.PeerUrl, peerPath, currentNodePeer);
 
-            var response = httpClient.PostAsync(requestUrl, new JsonContent(currentNodePeer));
+            if (!response.IsSuccessStatusCode)
+            {
+                return BadRequest($"{peer.PeerUrl} did not added successfully current peer, Status Code: {response.StatusCode}");
+            }
 
             return Ok(new { Message = string.Format("Added peer: {0}", peer.PeerUrl) });
         }
