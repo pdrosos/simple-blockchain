@@ -171,13 +171,8 @@ namespace Node.Api.Services
             return blockCandidate;
         }
 
-        private bool AddBlockToBlockchain(Block block)
+        public bool AddBlockToBlockchain(Block block)
         {
-            if (this.dataService.Blocks.Count == 0)
-            {
-                this.GenerateGenesisBlock();
-            }
-
             if (this.dataService.Blocks != null && this.dataService.Blocks.Any(b => b.Index == block.Index))
             {
                 return false;
@@ -185,11 +180,18 @@ namespace Node.Api.Services
 
             this.dataService.Blocks.Add(block);
 
+            //TODO: Notify peers for block
+
             return true;
         }
 
-        private void GenerateGenesisBlock()
+        public void GenerateGenesisBlock()
         {
+            if (this.dataService.Blocks != null && this.dataService.Blocks.Count > 0)
+            {
+                return;
+            }
+
             var transaction = new List<Transaction>();
 
             transaction.Add(new Transaction
@@ -204,18 +206,17 @@ namespace Node.Api.Services
                 TransactionHash = ZeroHash
             });
 
-            this.AddBlockToBlockchain(
-                new Block
-                {
-                    Difficulty = this.dataService.NodeInfo.Difficulty,
-                    Index = 0,
-                    MinedBy = "Michael Jordan",
-                    PrevBlockHash = ZeroHash,
-                    BlockDataHash = ZeroHash,
-                    Transactions = transaction,
-                    DateCreated = DateTime.UtcNow,
-                    Nonce = 0
-                });
+            this.AddBlockToBlockchain(new Block
+            {
+                Difficulty = this.dataService.NodeInfo.Difficulty,
+                Index = 0,
+                MinedBy = "Michael Jordan",
+                PrevBlockHash = ZeroHash,
+                BlockDataHash = ZeroHash,
+                Transactions = transaction,
+                DateCreated = DateTime.UtcNow,
+                Nonce = 0
+            });
         }
 
         private void SendTransactionToPeers(Transaction transaction, string currentPeerUrl)

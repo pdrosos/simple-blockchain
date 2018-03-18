@@ -71,7 +71,7 @@ namespace Node.Api
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IDataService dataService)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IDataService dataService, INodeService nodeService)
         {
             if (env.IsDevelopment())
             {
@@ -93,6 +93,8 @@ namespace Node.Api
             dataService.PendingTransactions = new List<Transaction>();
 
             dataService.Blocks = new List<Block>();
+
+            nodeService.GenerateGenesisBlock();
 
             dataService.MiningJobs = new Dictionary<string, Block>();
         }

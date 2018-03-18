@@ -7,5 +7,7 @@ namespace Node.Api.Services.Abstractions
         TransactionSubmissionResponse ProcessTransaction(Transaction transaction, string currentPeerUrl);
 
         MiningJob GetMiningJob(string minerAddress);
+
+        void GenerateGenesisBlock();
     }
 }
