@@ -9,5 +9,7 @@ namespace Node.Api.Configuration
         public int Difficulty { get; set; }
 
         public List<string> AllNodes { get; set; }
+
+        public long MinerReward { get; set; }
     }
 }

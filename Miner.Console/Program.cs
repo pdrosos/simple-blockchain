@@ -4,6 +4,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Miner.Console.Models;
     using Serilog;
+    using Serilog.Core;
     using System;
     using System.Diagnostics;
     using System.Net;
@@ -41,6 +42,9 @@
             nodeUrl = args[0];
             minerAddress = args[1];
 
+            Console.WriteLine($"nodeUrl: {nodeUrl}");
+            Console.WriteLine($"minerAddress: {minerAddress}");
+
             var log = new LoggerConfiguration()
                 .WriteTo.Console()
                 .WriteTo.File($"Log/Log-Miner-{minerAddress}.txt")
@@ -48,10 +52,10 @@
 
             log.Information("Hello, Serilog!");
 
-            MineAsync(httpHelpers, dateTimeHelpers).Wait();
+            MineAsync(httpHelpers, dateTimeHelpers, log).Wait();
         }
 
-        public static async Task MineAsync(IHttpHelpers httpHelpers, IDateTimeHelpers dateTimeHelpers)
+        public static async Task MineAsync(IHttpHelpers httpHelpers, IDateTimeHelpers dateTimeHelpers, Logger log)
         {
             HttpStatusCode statusCode = HttpStatusCode.RequestTimeout;
 
@@ -77,7 +81,7 @@
                             Type = ParameterType.UrlSegment
                         };
 
-                        Log.Information($"Trying to get mining job from node: {nodeUrl}");
+                        log.Information($"Trying to get mining job from node: {nodeUrl}");
 
                         Response<MiningJob> response = await httpHelpers.DoApiGet<MiningJob>(nodeUrl, path, parameter);
 
@@ -98,7 +102,7 @@
                     }
                 } while (statusCode != HttpStatusCode.OK);
 
-                Log.Information($"Successfully received mining job (Block Data Hash: {miningJob.BlockDataHash}) from node!");
+                log.Information($"Successfully received mining job (Block Data Hash: {miningJob.BlockDataHash}) from node!");
 
                 Console.WriteLine("Start New Mining Job:");
                 Console.WriteLine("Block Index: {0}", miningJob.BlockIndex);
@@ -152,10 +156,10 @@
 
                                 string statusDescription = response.ReasonPhrase;
 
-                                Log.Information($"Sent request to: {nodeUrl} with mined block (hash: {blockHash})!");
+                                log.Information($"Sent request to: {nodeUrl} with mined block (hash: {blockHash})!");
 
                                 Console.WriteLine(statusDescription);
-                                Log.Information($"Received response from {nodeUrl} - statuc code: {statusCode}, description: {statusDescription}");
+                                log.Information($"Received response from {nodeUrl} - statuc code: {statusCode}, description: {statusDescription}");
                             }
                             catch (WebException e)
                             {

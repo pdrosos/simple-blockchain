@@ -17,6 +17,8 @@ namespace Node.Api.Services
 
         private Dictionary<string, Block> miningJobs;
 
+        private long minerReward;
+
         public NodeInfo NodeInfo
         {
             get { return this.nodeInfo; }
@@ -45,6 +47,12 @@ namespace Node.Api.Services
         {
             get { return this.miningJobs; }
             set { this.miningJobs = value; }
+        }
+
+        public long MinerReward
+        {
+            get { return this.minerReward; }
+            set { this.minerReward = value; }
         }
     }
 }

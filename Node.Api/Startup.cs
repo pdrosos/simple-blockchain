@@ -90,6 +90,8 @@ namespace Node.Api
                 PeersListUrls = new List<string>()
             };
 
+            dataService.MinerReward = appSettings.MinerReward;
+
             dataService.PendingTransactions = new List<Transaction>();
 
             dataService.Blocks = new List<Block>();

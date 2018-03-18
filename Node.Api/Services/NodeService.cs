@@ -120,12 +120,7 @@ namespace Node.Api.Services
                 throw new Exception("Cannot create block candidate");
             }
 
-            if (this.dataService.MiningJobs.ContainsKey(minerAddress))
-            {
-                this.dataService.MiningJobs.Remove(minerAddress);
-            }
-
-            bool additionSuccessful = this.dataService.MiningJobs.TryAdd(minerAddress, blockCandidate);
+            bool additionSuccessful = this.dataService.MiningJobs.TryAdd(blockCandidate.BlockDataHash, blockCandidate);
 
             if (!additionSuccessful)
             {
@@ -145,7 +140,7 @@ namespace Node.Api.Services
             {
                 From = new string('0', 64),
                 To = minerAddress,
-                Value = 5000,
+                Value = this.dataService.MinerReward,
                 Fee = 0,
                 DateCreated = DateTime.Now,
                 SenderPubKey = new string('0', 64),
@@ -153,6 +148,8 @@ namespace Node.Api.Services
                 MinedInBlockIndex = blockCandidateIndex,
                 TransferSuccessful = true
             };
+
+            coinbaseTransaction.TransactionHash = this.CalculateTransactionHash(coinbaseTransaction);
 
             List<Transaction> blockCandidateTransactions = new List<Transaction>(this.dataService.PendingTransactions);
 
@@ -164,9 +161,14 @@ namespace Node.Api.Services
                 Transactions = blockCandidateTransactions,
                 Difficulty = this.dataService.NodeInfo.Difficulty,
                 PrevBlockHash = latestBlock.BlockDataHash,
-                MinedBy = minerAddress,
-                BlockDataHash = ""
+                MinedBy = minerAddress
             };
+
+            string blockCandidateJson = JsonConvert.SerializeObject(blockCandidate);
+
+            string blockDataHash = this.cryptographyHelpers.CalcSHA256(blockCandidateJson);
+
+            blockCandidate.BlockDataHash = blockDataHash;
 
             return blockCandidate;
         }

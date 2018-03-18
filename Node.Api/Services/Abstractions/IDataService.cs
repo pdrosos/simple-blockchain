@@ -14,5 +14,7 @@ namespace Node.Api.Services.Abstractions
         MiningJob MiningJob { get; set; }
 
         Dictionary<string, Block> MiningJobs { get; set; }
+
+        long MinerReward { get; set; }
     }
 }
