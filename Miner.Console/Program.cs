@@ -77,6 +77,8 @@
                             Type = ParameterType.UrlSegment
                         };
 
+                        Log.Information($"Trying to get mining job from node: {nodeUrl}");
+
                         Response<MiningJob> response = await httpHelpers.DoApiGet<MiningJob>(nodeUrl, path, parameter);
 
                         miningJob = response.Data;

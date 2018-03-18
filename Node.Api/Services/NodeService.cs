@@ -36,6 +36,12 @@ namespace Node.Api.Services
 
         private readonly ILogger<NodeService> logger;
 
+        const int FaucetStartVolume = 1000000;
+
+        const string ZeroHash = "0000000000000000000000000000000000000000";
+
+        const string FaucetAddress = "a4a239576a1d25b32cf2a037e3540f6a2326fdc3";
+
         public NodeService(
             IMapper mapper, 
             IDataService dataService,
@@ -163,6 +169,53 @@ namespace Node.Api.Services
             };
 
             return blockCandidate;
+        }
+
+        private bool AddBlockToBlockchain(Block block)
+        {
+            if (this.dataService.Blocks.Count == 0)
+            {
+                this.GenerateGenesisBlock();
+            }
+
+            if (this.dataService.Blocks != null && this.dataService.Blocks.Any(b => b.Index == block.Index))
+            {
+                return false;
+            }
+
+            this.dataService.Blocks.Add(block);
+
+            return true;
+        }
+
+        private void GenerateGenesisBlock()
+        {
+            var transaction = new List<Transaction>();
+
+            transaction.Add(new Transaction
+            {
+                To = FaucetAddress,
+                From = ZeroHash,
+                Value = FaucetStartVolume,
+                TransferSuccessful = true,
+                DateCreated = DateTime.UtcNow,
+                MinedInBlockIndex = 0,
+                Fee = 0,
+                TransactionHash = ZeroHash
+            });
+
+            this.AddBlockToBlockchain(
+                new Block
+                {
+                    Difficulty = this.dataService.NodeInfo.Difficulty,
+                    Index = 0,
+                    MinedBy = "Michael Jordan",
+                    PrevBlockHash = ZeroHash,
+                    BlockDataHash = ZeroHash,
+                    Transactions = transaction,
+                    DateCreated = DateTime.UtcNow,
+                    Nonce = 0
+                });
         }
 
         private void SendTransactionToPeers(Transaction transaction, string currentPeerUrl)
