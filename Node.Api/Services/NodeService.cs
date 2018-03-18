@@ -81,7 +81,7 @@ namespace Node.Api.Services
 
             if (collisionDetected)
             {
-                transactionSubmissionResponse.StatusCode = 409;
+                transactionSubmissionResponse.StatusCode = 409; //Conflict
                 transactionSubmissionResponse.Message = "Collision has been detected";
 
                 return transactionSubmissionResponse;

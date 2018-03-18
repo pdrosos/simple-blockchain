@@ -2,15 +2,17 @@
 {
     using System;
     using System.Diagnostics;
+    using System.IO;
     using System.Net;
     using System.Security.Cryptography;
     using System.Text;
+
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    
+
     class Program
     {
-        static string nodeUrl = "http://localhost:5000";
+        static string nodeUrl = "http://localhost:5555";
         static string minerAddress = "000000000";
            
         static void Main(string[] args)
@@ -18,13 +20,13 @@
             if (args.Length < 2)
             {
                 Console.WriteLine("Usage: \t dotnet Miner.Console.dll <NODE_URL> <Miner_Address>");
-                
+
                 return;
             }
 
             nodeUrl = args[0];
             minerAddress = args[1];
-            
+
             Mine();
         }
 
@@ -49,41 +51,41 @@
             {
                 sw.Start();
 
-//                do
-//                {
-//                    try
-//                    {
-//                        statusCode = HttpStatusCode.RequestTimeout;
-//
-//                        // Create a request to Node   
-//                        WebRequest request = WebRequest.Create(nodeUrl + "/mining/get-block/" + minerAddress);
-//                        request.Method = "GET";
-//                        request.Timeout = 3000;
-//                        request.ContentType = "application/json; charset=utf-8";
-//
-//                        response = request.GetResponse();
-//                        statusCode = ((HttpWebResponse)response).StatusCode;
-//                    }
-//                    catch (WebException e)
-//                    {
-//                        Console.WriteLine("WebException raised!");
-//                        Console.WriteLine("{0}\n", e.Message);
-//                    }
-//                    catch (Exception e)
-//                    {
-//                        Console.WriteLine("Exception raised!");
-//                        Console.WriteLine("Source : {0}", e.Source);
-//                        Console.WriteLine("Message : {0}\n", e.Message);
-//                    }
-//                } while (statusCode != HttpStatusCode.OK);
-//
-//                Stream dataStream = response.GetResponseStream();
-//                StreamReader reader = new StreamReader(dataStream);
-//                string responseBody = reader.ReadToEnd();
-//                
-//                reader.Close();
-//                dataStream.Close();
-//                response.Close();
+                do
+                {
+                    try
+                    {
+                        statusCode = HttpStatusCode.RequestTimeout;
+
+                        // Create a request to Node   
+                        WebRequest request = WebRequest.Create(nodeUrl + "/mining/get-block/" + minerAddress);
+                        request.Method = "GET";
+                        request.Timeout = 3000;
+                        request.ContentType = "application/json; charset=utf-8";
+
+                        response = request.GetResponse();
+                        statusCode = ((HttpWebResponse)response).StatusCode;
+                    }
+                    catch (WebException e)
+                    {
+                        Console.WriteLine("WebException raised!");
+                        Console.WriteLine("{0}\n", e.Message);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Exception raised!");
+                        Console.WriteLine("Source : {0}", e.Source);
+                        Console.WriteLine("Message : {0}\n", e.Message);
+                    }
+                } while (statusCode != HttpStatusCode.OK);
+
+                Stream dataStream = response.GetResponseStream();
+                StreamReader reader = new StreamReader(dataStream);
+                responseBody = reader.ReadToEnd();
+
+                reader.Close();
+                dataStream.Close();
+                response.Close();
 
                 MiningJob miningJob = JsonConvert.DeserializeObject<MiningJob>(responseBody);
 
@@ -123,43 +125,43 @@
                             blockHash = blockHash
                         });
                         byte[] blockFoundData = Encoding.UTF8.GetBytes(obj.ToString());
-                        
-//                        int retries = 0;
-//                        do
-//                        {
-//                            try
-//                            {
-//                                statusCode = HttpStatusCode.RequestTimeout;
-//
-//                                WebRequest request = WebRequest.Create(nodeUrl + "/mining/get-block/" + minerAddress);
-//                                request.Method = "POST";
-//                                request.Timeout = 3000;
-//                                request.ContentType = "application/json; charset=utf-8";
-//
-//                                dataStream = request.GetRequestStream();
-//                                dataStream.Write(blockFoundData, 0, blockFoundData.Length);
-//                                dataStream.Close();
-//
-//                                response = request.GetResponse();
-//                                statusCode = ((HttpWebResponse)response).StatusCode;
-//                                
-//                                Console.WriteLine(((HttpWebResponse)response).StatusDescription);
-//                                response.Close();
-//                            }
-//                            catch (WebException e)
-//                            {
-//                                Console.WriteLine("WebException raised!");
-//                                Console.WriteLine("{0}\n", e.Message);
-//                            }
-//                            catch (Exception e)
-//                            {
-//                                Console.WriteLine("Exception raised!");
-//                                Console.WriteLine("Source : {0}", e.Source);
-//                                Console.WriteLine("Message : {0}\n", e.Message);
-//                            }
-//
-//                            System.Threading.Thread.Sleep(1000);
-//                        } while (statusCode != HttpStatusCode.OK && retries++ < 3);
+
+                        int retries = 0;
+                        do
+                        {
+                            try
+                            {
+                                statusCode = HttpStatusCode.RequestTimeout;
+
+                                WebRequest request = WebRequest.Create(nodeUrl + "/mining/get-block/" + minerAddress);
+                                request.Method = "POST";
+                                request.Timeout = 3000;
+                                request.ContentType = "application/json; charset=utf-8";
+
+                                dataStream = request.GetRequestStream();
+                                dataStream.Write(blockFoundData, 0, blockFoundData.Length);
+                                dataStream.Close();
+
+                                response = request.GetResponse();
+                                statusCode = ((HttpWebResponse)response).StatusCode;
+
+                                Console.WriteLine(((HttpWebResponse)response).StatusDescription);
+                                response.Close();
+                            }
+                            catch (WebException e)
+                            {
+                                Console.WriteLine("WebException raised!");
+                                Console.WriteLine("{0}\n", e.Message);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine("Exception raised!");
+                                Console.WriteLine("Source : {0}", e.Source);
+                                Console.WriteLine("Message : {0}\n", e.Message);
+                            }
+
+                            System.Threading.Thread.Sleep(1000);
+                        } while (statusCode != HttpStatusCode.OK && retries++ < 3);
 
                         blockFound = true;
                         break;
