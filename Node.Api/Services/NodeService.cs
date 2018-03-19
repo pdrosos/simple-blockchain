@@ -156,6 +156,16 @@ namespace Node.Api.Services
                     blockCandidate.DateCreated = DateTime.Parse(minedBlock.DateCreated);
 
                     this.AddBlockToBlockchain(blockCandidate);
+                    
+                    //remove pending transactions that are already included in the blockchain
+                    blockCandidate.Transactions.ForEach(transaction =>
+                    {
+                        this.dataService.PendingTransactions.Remove(
+                            this.dataService
+                                .PendingTransactions
+                                .Single(t => t.TransactionHash == transaction.TransactionHash)
+                        );
+                    });
 
                     this.logger.LogInformation($"Block {blockCandidate.Index} with hash {blockHash} added to blockchain");
                 }
