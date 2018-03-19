@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using AutoMapper;
+using Swashbuckle.AspNetCore.Swagger;
 
 using Infrastructure.Library.Helpers;
 using Node.Api.Configuration;
@@ -12,7 +15,6 @@ using Node.Api.Helpers;
 using Node.Api.Models;
 using Node.Api.Services;
 using Node.Api.Services.Abstractions;
-
 
 namespace Node.Api
 {
@@ -58,6 +60,17 @@ namespace Node.Api
             services.AddScoped<IHttpContextHelpers, HttpContextHelpers>();
 
             services.AddScoped<IHttpHelpers, HttpHelpers>();
+            
+            // Register the Swagger generator, defining one or more Swagger documents
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Info { Title = "Blockchain REST API", Version = "v1" });
+                
+                // Set the comments path for the Swagger JSON and UI.
+                //var basePath = AppContext.BaseDirectory;
+                //var xmlPath = Path.Combine(basePath, "Blockchain.xml");
+                //c.IncludeXmlComments(xmlPath);
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -67,6 +80,17 @@ namespace Node.Api
             {
                 app.UseDeveloperExceptionPage();
             }
+            
+            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            app.UseSwagger();
+
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
+            app.UseSwaggerUI(c =>
+            {
+                //c.RoutePrefix = "api-docs";
+                c.DocumentTitle = "Simple Blockchain REST API";
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Simple Blockchain API V1");
+            });
 
             app.UseCors("AllowAll");
             app.UseMvc();

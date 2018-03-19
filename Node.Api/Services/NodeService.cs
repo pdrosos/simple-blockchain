@@ -114,6 +114,7 @@ namespace Node.Api.Services
 
             this.logger.LogInformation($"Node: {currentPeerUrl} added transaction with hash: {transactionHash} to pending transactions");
 
+            // send transaction to peers
             this.SendTransactionToPeers(transaction, currentPeerUrl);
 
             return transactionSubmissionResponse;
@@ -173,6 +174,9 @@ namespace Node.Api.Services
                     this.AddBlockToBlockchain(blockCandidate);
 
                     this.logger.LogInformation($"Block {blockCandidate.Index} with hash {blockHash} added to blockchain");
+                    
+                    // send block to peers
+                    
                 }
                 else
                 {
