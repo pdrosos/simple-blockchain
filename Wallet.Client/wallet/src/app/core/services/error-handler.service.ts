@@ -9,7 +9,7 @@ import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 @Injectable()
 export class ErrorHandlerService {
 
-  constructor() { 
+  constructor() {
   }
 
   public handleError(error: HttpErrorResponse) {
@@ -21,7 +21,7 @@ export class ErrorHandlerService {
     } else {
       // The backend returned an unsuccessful response code.
       // The response body may contain clues as to what went wrong
-      messageFromError = `Server returned error ${error.status}`;
+      messageFromError = `Server returned error: ${error.status} ${error.error.errorMessage}`;
 
       console.error(
         `Server returned error ${error.status}, ` +

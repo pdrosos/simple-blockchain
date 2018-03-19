@@ -131,7 +131,7 @@
 
                     if (blockHash.StartsWith(requiredLeadingZeroes))
                     {
-                        Console.WriteLine("Block Mined");
+                        Console.WriteLine("Block Mined!");
                         Console.WriteLine($"Block Hash: {blockHash}\n");
 
                         var minedBlock = new MinedBlockPostModel()

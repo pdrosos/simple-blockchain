@@ -50,7 +50,7 @@
 
             long pendingBalance = 0L;
 
-            int saveConfirmCount = 6;
+            int safeConfirmationsCount = 6;
 
             for (int i = 0; i < this.dataService.Blocks.Count; i++)
             {
@@ -60,7 +60,7 @@
                     {
                         latestAddressBlockIndex = i;
 
-                        if (this.dataService.Blocks.Count - i >= saveConfirmCount)
+                        if (this.dataService.Blocks.Count - i >= safeConfirmationsCount)
                         {
                             confirmedBalance = this.UpdateBalance(transaction, address, confirmedBalance);
                         }

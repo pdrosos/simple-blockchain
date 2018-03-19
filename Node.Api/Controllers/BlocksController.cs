@@ -44,6 +44,8 @@
         [HttpPost("notify")]
         public IActionResult Notify([FromBody]NewBlockNotification newBlockNotification)
         {
+            
+            
             return Ok(new { Message = "Thank you for the notification." });
         }
     }

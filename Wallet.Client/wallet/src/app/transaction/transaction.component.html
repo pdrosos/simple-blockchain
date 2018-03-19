@@ -1,14 +1,19 @@
 <div class="container">
     <h3>Send Transaction</h3>
+
+  <div class="alert alert-danger" role="alert" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
   <form (ngSubmit)="onTransactionSend()" #sendTransactionForm="ngForm" *ngIf="transactionPostModel?.from">
     <div class="form-group">
       <label for="sender">Sender: </label>
-      <input type="text" class="form-control" id="sender" name="sender" required [(ngModel)]="transactionPostModel.from" 
+      <input type="text" class="form-control" id="sender" name="sender" required [(ngModel)]="transactionPostModel.from"
         #senderControl="ngModel" disabled>
     </div>
     <div class="form-group">
       <label for="name">Recipient: </label>
-      <input type="text" class="form-control" id="recipient" name="recipient" [(ngModel)]="transactionPostModel.to" 
+      <input type="text" class="form-control" id="recipient" name="recipient" [(ngModel)]="transactionPostModel.to"
         #recipientControl="ngModel" [required]="true" pattern="^[A-Za-z0-9]+$">
       <div *ngIf="recipientControl.errors?.required && recipientControl.dirty" class="alert alert-danger">
           Recipient address is required
@@ -19,7 +24,7 @@
     </div>
     <div class="form-group">
       <label for="name">Value: </label>
-      <input type="number" class="form-control" id="transaction-value" name="transaction-value" [(ngModel)]="transactionPostModel.value" 
+      <input type="number" class="form-control" id="transaction-value" name="transaction-value" [(ngModel)]="transactionPostModel.value"
         #transactionValueControl="ngModel" [required]="true" pattern="^[0-9]+$">
       <div *ngIf="transactionValueControl.errors?.required && transactionValueControl.dirty" class="alert alert-danger">
           Transaction value is required
@@ -36,20 +41,27 @@
       </div>
     </div>
     <div class="form-group">
-        <textarea class="form-control" id="signed-transaction" name="signed-transaction-json" rows="8" 
+        <textarea class="form-control" id="signed-transaction" name="signed-transaction-json" rows="8"
           [(ngModel)]="signedTransactionJSON" disabled></textarea>
     </div>
     <div class="form-group">
       <label for="name">Blockchain Node: </label>
-      <input type="text" class="form-control" id="blockchain-node" name="blockchain-node" [(ngModel)]="blockchainNodeUrl" 
-        #blockchainNode="ngModel" [required]="transactionSigned">
+      <input type="text"
+             class="form-control"
+             id="blockchain-node"
+             name="blockchain-node"
+             [(ngModel)]="blockchainNodeUrl"
+             #blockchainNode="ngModel"
+             [required]="transactionSigned">
       <div *ngIf="blockchainNode.errors?.required && blockchainNode.dirty" class="alert alert-danger">
           Blockchain node url is required
       </div>
     </div>
     <div class="row">
       <div class="col-lg-3 mb-3">
-        <button type="submit" class="btn btn-success" [disabled]="sendTransactionForm.form.invalid || signedTransactionJSON == null">
+        <button type="submit"
+                class="btn btn-success"
+                [disabled]="sendTransactionForm.form.invalid || signedTransactionJSON == null || sendTransactionButtonDisabled">
             Send Transaction
         </button>
       </div>

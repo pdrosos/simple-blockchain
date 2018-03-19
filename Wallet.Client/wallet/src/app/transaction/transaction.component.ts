@@ -17,7 +17,7 @@ export class TransactionComponent implements OnInit {
 
   private transactionSubmissionResponse: TransactionSubmissionResponse;
 
-  private blockchainNodeUrl: string;
+  private blockchainNodeUrl: string = 'http://localhost:5000';
 
   private signedTransactionJSON: string;
 
@@ -25,7 +25,7 @@ export class TransactionComponent implements OnInit {
 
   private errorMessage: string;
 
-  private model: any;
+  public sendTransactionButtonDisabled: boolean = false;
 
   constructor(private walletService: WalletService) { }
 
@@ -50,9 +50,11 @@ export class TransactionComponent implements OnInit {
   }
 
   public onTransactionSend(): void {
+    this.sendTransactionButtonDisabled = true;
+
     this.walletService.sendTransaction(this.blockchainNodeUrl, this.transactionPostModel).subscribe(
-      transactionSubmissionResponse => { 
-        this.transactionSubmissionResponse = { ...transactionSubmissionResponse } 
+      transactionSubmissionResponse => {
+        this.transactionSubmissionResponse = { ...transactionSubmissionResponse }
       },
       error => this.errorMessage = error
     );

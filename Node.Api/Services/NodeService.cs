@@ -25,34 +25,36 @@ namespace Node.Api.Services
 
         private readonly IDataService dataService;
 
+        private readonly IAddressService addressService;
+
         private readonly ICryptographyHelpers cryptographyHelpers;
 
         private readonly IDateTimeHelpers dateTimeHelpers;
 
         private readonly IHttpHelpers httpHelpers;
 
-        private readonly IHttpContextHelpers httpContextHelpers;
-
         private readonly ILogger<NodeService> logger;
 
-        const int FaucetStartVolume = 1000000;
+        const int OwnerInitialAmount = 10000000;
 
         const string ZeroHash = "0000000000000000000000000000000000000000";
 
-        const string FaucetAddress = "a4a239576a1d25b32cf2a037e3540f6a2326fdc3";
+        const string OwnerAddress = "65339f3a4e26ca447a69fb2714d5337b7800bcb9";
 
         public NodeService(
             IMapper mapper, 
             IDataService dataService,
+            IAddressService addressService,
             ICryptographyHelpers cryptographyHelpers,
             IDateTimeHelpers dateTimeHelpers,
             IHttpHelpers httpHelpers,
-            IHttpContextHelpers httpContextHelpers,
             ILogger<NodeService> logger)
         {
             this.mapper = mapper;
 
             this.dataService = dataService;
+
+            this.addressService = addressService;
 
             this.cryptographyHelpers = cryptographyHelpers;
 
@@ -60,13 +62,12 @@ namespace Node.Api.Services
 
             this.httpHelpers = httpHelpers;
 
-            this.httpContextHelpers = httpContextHelpers;
-
             this.logger = logger;
         }
 
         public TransactionSubmissionResponse ProcessTransaction(Transaction transaction, string currentPeerUrl)
         {
+            // verify signature
             bool signatureVerificationResult = this.VerifySignature(transaction);
 
             var transactionSubmissionResponse = new TransactionSubmissionResponse();
@@ -79,6 +80,7 @@ namespace Node.Api.Services
                 return transactionSubmissionResponse;
             }
 
+            // check for collision
             string transactionHash = this.CalculateTransactionHash(transaction);
 
             var collisionDetected = this.IsCollisionDetected(
@@ -90,6 +92,16 @@ namespace Node.Api.Services
             {
                 transactionSubmissionResponse.StatusCode = 409; //Conflict
                 transactionSubmissionResponse.Message = "Collision has been detected";
+
+                return transactionSubmissionResponse;
+            }
+            
+            // validate balance
+            var balance = this.addressService.GetAddressBalance(transaction.From);
+            if (balance.ConfirmedBalance.BalanceValue < transaction.Value + transaction.Fee)
+            {
+                transactionSubmissionResponse.StatusCode = 422; //Unprocessable entity
+                transactionSubmissionResponse.Message = "Insufficient funds";
 
                 return transactionSubmissionResponse;
             }
@@ -241,9 +253,9 @@ namespace Node.Api.Services
 
             transaction.Add(new Transaction
             {
-                To = FaucetAddress,
+                To = OwnerAddress,
                 From = ZeroHash,
-                Value = FaucetStartVolume,
+                Value = OwnerInitialAmount,
                 TransferSuccessful = true,
                 DateCreated = DateTime.UtcNow,
                 MinedInBlockIndex = 1,

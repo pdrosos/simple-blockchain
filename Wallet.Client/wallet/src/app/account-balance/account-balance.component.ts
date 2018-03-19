@@ -15,7 +15,7 @@ export class AccountBalanceComponent implements OnInit {
 
   private walletAddress: string;
 
-  private blockchainNodeUrl: string;
+  private blockchainNodeUrl: string = 'http://localhost:5000';
 
   private balanceForAddress: AddressBalance;
 
