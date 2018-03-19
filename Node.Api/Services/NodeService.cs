@@ -22,8 +22,6 @@ namespace Node.Api.Services
         private const string TransactionApiPath = @"transactions/send";
         private const string BlockNotifyApiPath = @"blocks/notify";
 
-        private readonly IMapper mapper;
-
         private readonly IDataService dataService;
 
         private readonly IAddressService addressService;
@@ -43,7 +41,6 @@ namespace Node.Api.Services
         const string OwnerAddress = "65339f3a4e26ca447a69fb2714d5337b7800bcb9";
 
         public NodeService(
-            IMapper mapper, 
             IDataService dataService,
             IAddressService addressService,
             ICryptographyHelpers cryptographyHelpers,
@@ -51,7 +48,6 @@ namespace Node.Api.Services
             IHttpHelpers httpHelpers,
             ILogger<NodeService> logger)
         {
-            this.mapper = mapper;
             this.dataService = dataService;
             this.addressService = addressService;
             this.cryptographyHelpers = cryptographyHelpers;
@@ -260,7 +256,9 @@ namespace Node.Api.Services
             // skip blocks from unknown peers
             if (!this.dataService.NodeInfo.PeersListUrls.Contains(newBlockNotification.Sender.PeerUrl))
             {
-                this.logger.LogInformation($"Received block {newBlockNotification.Block.Index} from unknown peer, skipping...");
+                this.logger.LogInformation(
+                    $"Received block {newBlockNotification.Block.Index} from unknown peer {newBlockNotification.Sender.PeerUrl}, skipping..."
+                );
                 
                 return;
             }
@@ -438,8 +436,16 @@ namespace Node.Api.Services
                 (
                     Task.Run(async() =>
                     {
-                        this.logger.LogInformation($"Node: has sent transaction to: {peerUrl}");
-                        var response = await this.httpHelpers.DoApiPost(peerUrl, BlockNotifyApiPath, block);
+                        var sender = new Peer();
+                        sender.PeerUrl = this.dataService.NodeUrl;
+                        var blockNotification = new NewBlockNotification
+                        {
+                            Block = block,
+                            Sender = sender,
+                        };
+                        
+                        this.logger.LogInformation($"Node: has sent block {block.Index} to: {peerUrl}");
+                        var response = await this.httpHelpers.DoApiPost(peerUrl, BlockNotifyApiPath, blockNotification);
 
                         if (response.IsSuccessStatusCode)
                         {

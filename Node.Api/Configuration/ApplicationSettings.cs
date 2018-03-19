@@ -11,5 +11,7 @@ namespace Node.Api.Configuration
         public List<string> AllNodes { get; set; }
 
         public long MinerReward { get; set; }
+        
+        public string NodeUrl { get; set; }
     }
 }

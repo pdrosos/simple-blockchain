@@ -19,6 +19,8 @@ namespace Node.Api.Services
 
         private long minerReward;
 
+        private string nodeUrl;
+
         public NodeInfo NodeInfo
         {
             get { return this.nodeInfo; }
@@ -53,6 +55,12 @@ namespace Node.Api.Services
         {
             get { return this.minerReward; }
             set { this.minerReward = value; }
+        }
+
+        public string NodeUrl
+        {
+            get { return this.nodeUrl; }
+            set { this.nodeUrl = value; }
         }
     }
 }

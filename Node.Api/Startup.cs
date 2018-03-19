@@ -44,6 +44,9 @@ namespace Node.Api
             });
 
             services.AddMvc();
+            
+            services.AddOptions();
+            services.Configure<ApplicationSettings>(Configuration.GetSection("App"));
 
             services.AddAutoMapper();
 
@@ -113,6 +116,8 @@ namespace Node.Api
             nodeService.GenerateGenesisBlock();
 
             dataService.MiningJobs = new Dictionary<string, Block>();
+
+            dataService.NodeUrl = appSettings.NodeUrl;
         }
     }
 }
