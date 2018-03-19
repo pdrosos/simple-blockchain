@@ -77,7 +77,8 @@ namespace Node.Api.Services
             var collisionDetected = this.IsCollisionDetected(
                 transactionHash, 
                 this.dataService.PendingTransactions = new List<Transaction>(), 
-                this.dataService.Blocks = new List<Block>());
+                this.dataService.Blocks
+            );
 
             if (collisionDetected)
             {

@@ -17,7 +17,7 @@ export class TransactionComponent implements OnInit {
 
   private transactionSubmissionResponse: TransactionSubmissionResponse;
 
-  private blockchainNodeUrl: string = 'http://localhost:5000';
+  private blockchainNodeUrl: string = 'http://localhost:5555';
 
   private signedTransactionJSON: string;
 
