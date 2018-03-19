@@ -407,16 +407,16 @@ namespace Node.Api.Services
                         Task.Run(async() =>
                         {
                             this.logger.LogInformation($"Node: {currentPeerUrl} has sent transaction to: {peerUrl}");
-                            var response = await this.httpHelpers.DoApiPost(peerUrl, BlockNotifyApiPath, transaction);
+                            var response = await this.httpHelpers.DoApiPost(peerUrl, TransactionApiPath, transaction);
 
                             if (response.IsSuccessStatusCode)
                             {
-                                this.logger.LogInformation($"Node: {peerUrl} successfully received the block");
+                                this.logger.LogInformation($"Node: {peerUrl} successfully received transaction {transaction.TransactionHash}");
                             }
                             else
                             {
                                 this.logger.LogInformation(
-                                    $"Node: {peerUrl} could not receive block (Status Code: {response.StatusCode}, Reason: {response.ReasonPhrase})");
+                                    $"Node: {peerUrl} could not receive transaction {transaction.TransactionHash} (Status Code: {response.StatusCode}, Reason: {response.ReasonPhrase})");
                             }
                             
                         })
@@ -439,16 +439,16 @@ namespace Node.Api.Services
                     Task.Run(async() =>
                     {
                         this.logger.LogInformation($"Node: has sent transaction to: {peerUrl}");
-                        var response = await this.httpHelpers.DoApiPost(peerUrl, TransactionApiPath, block);
+                        var response = await this.httpHelpers.DoApiPost(peerUrl, BlockNotifyApiPath, block);
 
                         if (response.IsSuccessStatusCode)
                         {
-                            this.logger.LogInformation($"Node: {peerUrl} successfully received the transaction");
+                            this.logger.LogInformation($"Node: {peerUrl} successfully received block {block.Index}");
                         }
                         else
                         {
                             this.logger.LogInformation(
-                                $"Node: {peerUrl} could not receive transaction (Status Code: {response.StatusCode}, Reason: {response.ReasonPhrase})");
+                                $"Node: {peerUrl} could not receive block {block.Index} (Status Code: {response.StatusCode}, Reason: {response.ReasonPhrase})");
                         }
                             
                     })
