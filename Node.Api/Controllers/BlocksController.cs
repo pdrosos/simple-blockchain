@@ -12,9 +12,12 @@
     {
         private readonly IDataService dataService;
 
-        public BlocksController(IDataService dataService)
+        private readonly INodeService nodeService;
+
+        public BlocksController(IDataService dataService, INodeService nodeService)
         {
             this.dataService = dataService;
+            this.nodeService = nodeService;
         }
 
         // GET blocks
@@ -44,9 +47,9 @@
         [HttpPost("notify")]
         public IActionResult Notify([FromBody]NewBlockNotification newBlockNotification)
         {
+            this.nodeService.ReceiveNewBlock(newBlockNotification);
             
-            
-            return Ok(new { Message = "Thank you for the notification." });
+            return Ok();
         }
     }
 }

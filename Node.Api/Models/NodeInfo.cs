@@ -21,5 +21,11 @@ namespace Node.Api.Models
         public long ConfirmedTransactions { get; set; }
 
         public int PendingTransactions { get; set; }
+
+        public NodeInfo()
+        {
+            this.PeersListUrls = new List<string>();
+            this.Blocks = 1;
+        }
     }
 }

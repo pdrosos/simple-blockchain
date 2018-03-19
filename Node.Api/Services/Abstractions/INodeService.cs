@@ -1,4 +1,5 @@
-﻿using Node.Api.Models;
+﻿using System.Threading.Tasks;
+using Node.Api.Models;
 
 namespace Node.Api.Services.Abstractions
 {
@@ -9,6 +10,8 @@ namespace Node.Api.Services.Abstractions
         MiningJob GetMiningJob(string minerAddress);
 
         void VerifyMinedJob(MinedBlockPostModel minedBlock);
+
+        void ReceiveNewBlock(NewBlockNotification newBlockNotification);
 
         void GenerateGenesisBlock();
     }

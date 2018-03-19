@@ -23,6 +23,8 @@ export class TransactionComponent implements OnInit {
 
   private transactionSigned: boolean;
 
+  private successMessage: string;
+
   private errorMessage: string;
 
   public sendTransactionButtonDisabled: boolean = false;
@@ -54,7 +56,8 @@ export class TransactionComponent implements OnInit {
 
     this.walletService.sendTransaction(this.blockchainNodeUrl, this.transactionPostModel).subscribe(
       transactionSubmissionResponse => {
-        this.transactionSubmissionResponse = { ...transactionSubmissionResponse }
+        this.transactionSubmissionResponse = { ...transactionSubmissionResponse };
+        this.successMessage = "Transaction sent";
       },
       error => this.errorMessage = error
     );

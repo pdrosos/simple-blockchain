@@ -2,10 +2,7 @@
 {
     public class NewBlockNotification
     {
-        public int Index { get; set; }
-
-        public int CumulativeDifficulty { get; set; }
-
-        public string PeerUrl { get; set; }
+        public Block Block { get; set; }
+        public Peer Sender { get; set; }
     }
 }

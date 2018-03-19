@@ -19,7 +19,8 @@ namespace Node.Api.Services
 {
     public class NodeService : INodeService
     {
-        const string TransactionApiPath = @"transactions/send";
+        private const string TransactionApiPath = @"transactions/send";
+        private const string BlockNotifyApiPath = @"blocks/notify";
 
         private readonly IMapper mapper;
 
@@ -34,10 +35,10 @@ namespace Node.Api.Services
         private readonly IHttpHelpers httpHelpers;
 
         private readonly ILogger<NodeService> logger;
+        
+        const string ZeroHash = "0000000000000000000000000000000000000000";
 
         const int OwnerInitialAmount = 10000000;
-
-        const string ZeroHash = "0000000000000000000000000000000000000000";
 
         const string OwnerAddress = "65339f3a4e26ca447a69fb2714d5337b7800bcb9";
 
@@ -51,17 +52,11 @@ namespace Node.Api.Services
             ILogger<NodeService> logger)
         {
             this.mapper = mapper;
-
             this.dataService = dataService;
-
             this.addressService = addressService;
-
             this.cryptographyHelpers = cryptographyHelpers;
-
             this.dateTimeHelpers = dateTimeHelpers;
-
             this.httpHelpers = httpHelpers;
-
             this.logger = logger;
         }
 
@@ -153,17 +148,9 @@ namespace Node.Api.Services
         {
             var blockCandidate = this.dataService.MiningJobs[minedBlock.BlockDataHash];
 
-            string blockData = blockCandidate.Index.ToString() +
-                               blockCandidate.Transactions.Count.ToString() +
-                               blockCandidate.BlockDataHash;
-
-            var data = blockData + minedBlock.DateCreated + minedBlock.Nonce.ToString();
-            var dataBytes = Encoding.UTF8.GetBytes(data);
-            var blockHash = this.cryptographyHelpers.ByteArrayToHexString(this.cryptographyHelpers.Sha256(dataBytes));
-            string requiredLeadingZeroes = new String('0', blockCandidate.Difficulty);
-
-            if (blockHash.StartsWith(requiredLeadingZeroes)) // nonce ok
+            try
             {
+                var blockHash = this.CalculateMinedBlockHash(blockCandidate, minedBlock);
                 // if next block - add to blockchain and notify peers
                 if (blockCandidate.Index == (ulong)this.dataService.Blocks.Count + 1)
                 {
@@ -174,18 +161,15 @@ namespace Node.Api.Services
                     this.AddBlockToBlockchain(blockCandidate);
 
                     this.logger.LogInformation($"Block {blockCandidate.Index} with hash {blockHash} added to blockchain");
-                    
-                    // send block to peers
-                    
                 }
                 else
                 {
                     this.logger.LogInformation($"Block candidate {blockCandidate.Index} with hash {blockHash} already exists in blockckain");
                 }
             }
-            else
+            catch (Exception e)
             {
-                this.logger.LogInformation($"Block candidate {blockCandidate.Index} with hash {blockHash} does not have correct nonce {minedBlock.Nonce}");
+                this.logger.LogInformation(e.Message);
             }
         }
 
@@ -219,7 +203,7 @@ namespace Node.Api.Services
                 Index = blockCandidateIndex,
                 Transactions = blockCandidateTransactions,
                 Difficulty = this.dataService.NodeInfo.Difficulty,
-                PrevBlockHash = latestBlock.BlockDataHash,
+                PrevBlockHash = latestBlock.BlockHash,
                 MinedBy = minerAddress
             };
 
@@ -232,6 +216,27 @@ namespace Node.Api.Services
             return blockCandidate;
         }
 
+        private string CalculateMinedBlockHash(Block blockCandidate, MinedBlockPostModel minedBlock)
+        {
+            string blockData = blockCandidate.Index.ToString() +
+                               blockCandidate.Transactions.Count.ToString() +
+                               blockCandidate.BlockDataHash;
+            var nonceStr = minedBlock.Nonce.ToString();
+            
+            var data = blockData + minedBlock.DateCreated + nonceStr;            
+            var blockHash = this.cryptographyHelpers.CalcSHA256(data);
+            
+            string requiredLeadingZeroes = new String('0', blockCandidate.Difficulty);
+            if (blockHash.StartsWith(requiredLeadingZeroes))
+            {
+                return blockHash;
+            }
+
+            throw new Exception(
+                $"Can not calculate valid block {blockCandidate.Index} hash: hash {blockHash}, nonce {nonceStr}, difficulty {blockCandidate.Difficulty.ToString()}"
+            );
+        }
+
         public bool AddBlockToBlockchain(Block block)
         {
             if (this.dataService.Blocks != null && this.dataService.Blocks.Any(b => b.Index == block.Index))
@@ -241,9 +246,90 @@ namespace Node.Api.Services
 
             this.dataService.Blocks.Add(block);
 
-            //TODO: Notify peers for block
+            // notify peers for new block
+            if (block.Index > 1)
+            {
+                this.SendBlockToPeers(block);
+            }
 
             return true;
+        }
+
+        public void ReceiveNewBlock(NewBlockNotification newBlockNotification)
+        {
+            // skip blocks from unknown peers
+            if (!this.dataService.NodeInfo.PeersListUrls.Contains(newBlockNotification.Sender.PeerUrl))
+            {
+                this.logger.LogInformation($"Received block {newBlockNotification.Block.Index} from unknown peer, skipping...");
+                
+                return;
+            }
+            
+            var lastBlock = this.dataService.Blocks.Last();
+            if (newBlockNotification.Block.Index <= lastBlock.Index)
+            {
+                // if we already have this block, ignore it
+                this.logger.LogInformation($"Received existing block {newBlockNotification.Block.Index}, skipping...");
+                
+                return;
+            }
+
+            // todo: validate block's POW
+//            if (!IsBlockValid(newBlockNotification.Block))
+//            {
+//                return;
+//            }
+
+            if (newBlockNotification.Block.Index == lastBlock.Index + 1 && 
+                lastBlock.BlockHash == newBlockNotification.Block.PrevBlockHash)
+            {
+                // if this is the last block, add it to our own chain
+                this.logger.LogInformation($"Received next block {newBlockNotification.Block.Index}, added to blockchain");
+                
+                this.dataService.Blocks.Add(newBlockNotification.Block);
+            }
+            else
+            {
+                Task.Run(async () =>
+                {
+                    // get peer chain and replace own chain with it
+                    var peerBlocks = await this.httpHelpers.DoApiGet<List<Block>>(newBlockNotification.Sender.PeerUrl, "blocks");
+                
+                    // todo: validate block's POW
+//                foreach (var block in peerBlocks.Data)
+//                {
+//                    
+//                }
+
+                    if (peerBlocks.Data.Count <= this.dataService.Blocks.Count)
+                    {
+                        // don't replace own blockchain with shorter peer blockchain
+                        this.logger.LogInformation($"Peer blockchain <= own blockchain, skipping...");
+                        
+                        return;
+                    }
+
+                    lock (this.dataService.Blocks)
+                    {
+                        lock (this.dataService.PendingTransactions)
+                        {
+                            this.dataService.Blocks = peerBlocks.Data;
+                            this.dataService.Blocks.ForEach(block =>
+                            {
+                                //remove pending transactions that are already included in the peer's blockchain
+                                block.Transactions.ForEach(transaction =>
+                                {
+                                    this.dataService.PendingTransactions.Remove(
+                                        this.dataService
+                                            .PendingTransactions
+                                            .Single(t => t.TransactionHash == transaction.TransactionHash)
+                                    );
+                                });
+                            });
+                        }
+                    }
+                });
+            }
         }
 
         public void GenerateGenesisBlock()
@@ -271,9 +357,10 @@ namespace Node.Api.Services
             {
                 Difficulty = this.dataService.NodeInfo.Difficulty,
                 Index = 1,
-                MinedBy = "Michael Jordan",
+                MinedBy = "Chuck Norris",
                 PrevBlockHash = ZeroHash,
                 BlockDataHash = ZeroHash,
+                BlockHash = ZeroHash,
                 Transactions = transaction,
                 DateCreated = DateTime.UtcNow,
                 Nonce = 0
@@ -283,11 +370,6 @@ namespace Node.Api.Services
         private void SendTransactionToPeers(Transaction transaction, string currentPeerUrl)
         {
             List<string> peers = this.dataService.NodeInfo.PeersListUrls;
-
-            if (peers == null)
-            {
-                peers = new List<string>();
-            }
 
             if (transaction.AlreadySentToPeers == null)
             {
@@ -325,16 +407,16 @@ namespace Node.Api.Services
                         Task.Run(async() =>
                         {
                             this.logger.LogInformation($"Node: {currentPeerUrl} has sent transaction to: {peerUrl}");
-                            var response = await this.httpHelpers.DoApiPost(peerUrl, TransactionApiPath, transaction);
+                            var response = await this.httpHelpers.DoApiPost(peerUrl, BlockNotifyApiPath, transaction);
 
                             if (response.IsSuccessStatusCode)
                             {
-                                this.logger.LogInformation($"Node: {peerUrl} successfully received the transaction");
+                                this.logger.LogInformation($"Node: {peerUrl} successfully received the block");
                             }
                             else
                             {
                                 this.logger.LogInformation(
-                                    $"Node: {peerUrl} could not receive transaction (Status Code: {response.StatusCode}, Reason: {response.ReasonPhrase})");
+                                    $"Node: {peerUrl} could not receive block (Status Code: {response.StatusCode}, Reason: {response.ReasonPhrase})");
                             }
                             
                         })
@@ -343,6 +425,37 @@ namespace Node.Api.Services
 
                 Task.WaitAll(tasks.ToArray());
             }
+        }
+
+        private void SendBlockToPeers(Block block)
+        {
+            var tasks = new List<Task>();
+            
+            List<string> peers = this.dataService.NodeInfo.PeersListUrls;
+            peers.ForEach(peerUrl =>
+            {
+                tasks.Add
+                (
+                    Task.Run(async() =>
+                    {
+                        this.logger.LogInformation($"Node: has sent transaction to: {peerUrl}");
+                        var response = await this.httpHelpers.DoApiPost(peerUrl, TransactionApiPath, block);
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            this.logger.LogInformation($"Node: {peerUrl} successfully received the transaction");
+                        }
+                        else
+                        {
+                            this.logger.LogInformation(
+                                $"Node: {peerUrl} could not receive transaction (Status Code: {response.StatusCode}, Reason: {response.ReasonPhrase})");
+                        }
+                            
+                    })
+                );
+            });
+
+            Task.WaitAll(tasks.ToArray());
         }
 
         private bool IsCollisionDetected(string transactionHash, List<Transaction> pendingTransactions, List<Block> blocks)

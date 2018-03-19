@@ -48,7 +48,8 @@
 
             if (currentNodePeers.Contains(peer.PeerUrl) || peer.PeerUrl == currentNodeUrl)
             {
-                return StatusCode(StatusCodes.Status409Conflict);
+                //return StatusCode(StatusCodes.Status409Conflict);
+                return Ok(new { Message = string.Format("Peer already added: {0}", peer.PeerUrl) });
             }
 
             this.dataService.NodeInfo.PeersListUrls.Add(peer.PeerUrl);

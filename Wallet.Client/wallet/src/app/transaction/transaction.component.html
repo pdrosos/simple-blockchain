@@ -1,5 +1,9 @@
 <div class="container">
-    <h3>Send Transaction</h3>
+  <h3>Send Transaction</h3>
+
+  <div class="alert alert-success" role="alert" *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
 
   <div class="alert alert-danger" role="alert" *ngIf="errorMessage">
     {{ errorMessage }}
